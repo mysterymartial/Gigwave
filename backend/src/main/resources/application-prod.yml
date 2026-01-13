@@ -1,0 +1,34 @@
+spring:
+  data:
+    mongodb:
+      # MongoDB Atlas connection string - MUST be set via MONGODB_URI environment variable
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE:gigwave_prod}
+
+logging:
+  level:
+    com.gigwave: WARN
+    org.springframework: WARN
+    root: INFO
+  file:
+    name: /var/log/gigwave/application.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+cors:
+  allowed-origins: ${CORS_ORIGINS:https://gigwave.com}
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: on-param
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+

@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: gigwave-mongodb
+    environment:
+      MONGO_INITDB_DATABASE: gigwave
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: gigwave-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      MONGODB_URI: mongodb://mongodb:27017/gigwave
+      MONGODB_DATABASE: gigwave
+      JWT_SECRET: ${JWT_SECRET:-your-256-bit-secret-key-change-in-production-minimum-32-characters}
+      ONEPIPE_API_KEY: ${ONEPIPE_API_KEY}
+      ONEPIPE_SECRET_KEY: ${ONEPIPE_SECRET_KEY}
+      ONEPIPE_BASE_URL: ${ONEPIPE_BASE_URL:-https://api.onepipe.io/v2/transact}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  mongodb_data:
+

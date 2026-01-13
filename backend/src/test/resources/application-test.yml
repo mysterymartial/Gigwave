@@ -1,0 +1,14 @@
+spring:
+  data:
+    mongodb:
+      # Embedded MongoDB will use a random port
+      # The embedded MongoDB auto-configuration handles this
+      database: gigwave_test
+
+logging:
+  level:
+    com.gigwave: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    de.flapdoodle.embed.mongo: INFO
+    root: INFO
+

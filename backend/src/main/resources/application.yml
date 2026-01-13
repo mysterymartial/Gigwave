@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: gigwave-backend
+  
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/gigwave}
+      database: ${MONGODB_DATABASE:gigwave}
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-change-in-production-minimum-32-characters}
+  expiration: 86400000 # 24 hours in milliseconds
+
+onepipe:
+  base-url: ${ONEPIPE_BASE_URL:https://api.onepipe.io/v2/transact}
+  api-key: ${ONEPIPE_API_KEY:your-onepipe-api-key}
+  secret-key: ${ONEPIPE_SECRET_KEY:your-onepipe-secret-key}
+  environment: ${ONEPIPE_ENV:sandbox}
+
+# GigWave platform fee configuration
+platform:
+  fee:
+    amount: 200 # Fixed platform fee in Naira per successful gig payment
+  account:
+    number: 0121753572
+    bank-code: 232 # Sterling Bank code
+    name: Agbaosi Bolarinwa Minasu
+
+logging:
+  level:
+    com.gigwave: DEBUG
+    org.springframework.security: DEBUG
+
+file:
+  upload:
+    chat-media-dir: uploads/chat-media
+    dispute-evidence-dir: uploads/dispute-evidence
+    kyc-document-dir: uploads/kyc-documents
+    report-evidence-dir: uploads/report-evidence
+    performance-video-dir: uploads/performance-videos
+    max-file-size: 10MB
+    max-request-size: 10MB
+

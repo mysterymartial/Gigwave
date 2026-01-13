@@ -1,0 +1,38 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env
+*.env
+
+# Build outputs
+node_modules/
+dist/
+build/
+target/
+*.class
+*.jar
+*.war
+
+# Uploads
+uploads/
+backend/uploads/
+
+
+
+
