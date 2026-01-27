@@ -21,5 +21,3 @@ public class DebitRequest {
     private String phone;
     private String accountName;
 }
-
-

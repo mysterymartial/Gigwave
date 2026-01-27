@@ -1,6 +1,8 @@
 # Integration
 
-## OnePipe API Integration
+## Payment Gateway Integration
+
+### OnePipe API Integration (Debits)
 
 ### API Structure
 
@@ -172,76 +174,62 @@ OnePipe API is integrated via `OnePipeClient` interface with implementation `One
 
 ---
 
-#### 4. Initiate Payout (`initiatePayout`)
+#### 4. Initiate Transfer (`initiateTransfer`) - Flutterwave
 
 **Purpose:** Transfer money to recipient bank account (musician or GigWave platform account).
 
-**OnePipe Request Type:** `disburse`
+**Provider:** Flutterwave (replaces OnePipe disburse)
 
 **Request Structure:**
 ```json
 {
-  "request_ref": "REQ_timestamp",
-  "request_type": "disburse",
-  "auth": {
-    "type": null,
-    "secure": null,
-    "auth_provider": "sandbox|production"
-  },
-  "transaction": {
-    "mock_mode": "live",
-    "transaction_ref": "TXN_timestamp",
-    "transaction_desc": "Payout for gig booking",
-    "amount": 2000000,
-    "customer": {
-      "customer_ref": "user_uuid",
-      "firstname": "John",
-      "surname": "Doe",
-      "email": "user@example.com",
-      "mobile_no": "08123456789"
-    },
-    "details": {
-      "destination_account": "0123456789",
-      "destination_bank_code": "058"
-    },
-    "meta": {
-      "callback_url": "http://localhost:8080/api/payments/webhooks/payout"
-    }
-  }
+  "account_bank": "058",
+  "account_number": "0123456789",
+  "amount": 5000,
+  "narration": "Gig payment for booking",
+  "currency": "NGN",
+  "reference": "GIG_1234567890_USER_ID",
+  "beneficiary_name": "John Doe",
+  "callback_url": "http://localhost:8080/api/payments/webhooks/payout"
 }
 ```
 
 **Where It's Used:**
 - `PaymentService.createPayoutOnDebitSuccess()` - Called automatically when debit succeeds
-- Two payouts are created: one for musician (acceptedAmount) and one for GigWave platform fee (₦200)
+- Two transfers are created: one for musician (acceptedAmount) and one for GigWave platform fee (₦200)
 
-**Musician Payout Flow:**
+**Musician Transfer Flow:**
 1. Debit webhook confirms successful debit
 2. System fetches musician's default payout bank account
-3. Creates `PayoutRequest` with musician's account details, `acceptedAmount`, and user info
-4. Calls `onePipeClient.initiatePayout(musicianPayoutRequest)`
+3. Creates `TransferRequest` with musician's account details, `acceptedAmount`, and user info
+4. Calls `transferClient.initiateTransfer(musicianTransferRequest)`
 5. System stores `Payout` entity with status `PENDING`
 
-**Platform Fee Payout Flow:**
-1. After musician payout, system creates second payout request
+**Platform Fee Transfer Flow:**
+1. After musician transfer, system creates second transfer request
 2. Uses platform account details: `0121753572` (Sterling Bank - 232), name: `Agbaosi Bolarinwa Minasu`
-3. Amount is ₦200 (20,000 kobo)
+3. Amount is ₦200
 4. Uses platform email `platform@gigwave.com` and phone `09010849782`
-5. Calls `onePipeClient.initiatePayout(platformPayoutRequest)`
+5. Calls `transferClient.initiateTransfer(platformFeeTransferRequest)`
 6. System stores second `Payout` entity for platform fee
 
 **Business Flow:**
-1. Organizer confirms payment → Debit initiated
+1. Organizer confirms payment → Debit initiated (OnePipe)
 2. Debit succeeds → Webhook received
 3. `PaymentService.createPayoutOnDebitSuccess()` called
-4. Two payouts created simultaneously:
+4. Two transfers created simultaneously:
    - Musician: Full `acceptedAmount` (e.g., ₦20,000)
    - GigWave: Platform fee (₦200)
-5. Both payouts sent to OnePipe
-6. OnePipe processes transfers and sends webhooks
+5. Both transfers sent to Flutterwave
+6. Flutterwave processes transfers and sends webhooks
 7. System updates payout statuses based on webhook responses
 
-**Response:** Returns `PayoutResponse` with `status`, `transactionRef`, and `message`
+**Response:** Returns `TransferResponse` with `status`, `transactionRef`, `message`, and `provider`
+
+**Configuration:**
+- Add `FLUTTERWAVE_SECRET_KEY` to `.env` file
+- Set `FLUTTERWAVE_ENABLED=true` for production
+- Test mode: Use `FLWSECK_TEST_...` key (free, no real money)
 
 ---
 

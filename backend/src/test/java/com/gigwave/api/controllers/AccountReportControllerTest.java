@@ -12,9 +12,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,7 +39,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AccountReportController.class)
-class AccountReportControllerTest {
+@Import(AccountReportControllerTest.MethodSecurityTestConfig.class)
+public class AccountReportControllerTest {
+    
+    @TestConfiguration
+    @EnableMethodSecurity
+    static class MethodSecurityTestConfig {
+    }
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,6 +54,9 @@ class AccountReportControllerTest {
 
     @MockBean
     private JwtUtil jwtUtil;
+
+    @MockBean
+    private com.gigwave.infrastructure.persistence.users.UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -225,4 +237,3 @@ class AccountReportControllerTest {
                 .andExpect(status().isForbidden());
     }
 }
-

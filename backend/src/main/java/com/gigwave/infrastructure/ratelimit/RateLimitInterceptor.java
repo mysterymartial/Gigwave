@@ -44,4 +44,3 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         return ip + ":" + (userAgent != null ? userAgent.hashCode() : "");
     }
 }
-

@@ -11,7 +11,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class LocalFileStorageServiceTest {
+public class LocalFileStorageServiceTest {
     private LocalFileStorageService fileStorageService;
     
     @TempDir
@@ -109,7 +109,3 @@ class LocalFileStorageServiceTest {
         // This test demonstrates the concept
     }
 }
-
-
-
-

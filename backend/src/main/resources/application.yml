@@ -30,14 +30,33 @@ onepipe:
   secret-key: ${ONEPIPE_SECRET_KEY:your-onepipe-secret-key}
   environment: ${ONEPIPE_ENV:sandbox}
 
+# Flutterwave Transfer Configuration
+# Used for transferring money to musicians after deducting platform fee and Flutterwave charges
+# Sign up at: https://flutterwave.com
+# Get your secret key from Flutterwave dashboard
+flutterwave:
+  secret-key: ${FLUTTERWAVE_SECRET_KEY:}
+  base-url: ${FLUTTERWAVE_BASE_URL:https://api.flutterwave.com/v3}
+  enabled: ${FLUTTERWAVE_ENABLED:false}
+  transfer:
+    charge: ${FLUTTERWAVE_TRANSFER_CHARGE:10} # Flutterwave charge per transfer (typically ₦10-15 in Nigeria)
+
 # GigWave platform fee configuration
 platform:
   fee:
     amount: 200 # Fixed platform fee in Naira per successful gig payment
+  settlement:
+    # Settlement account (Fidelity Bank) where all debited funds first land
+    # After collecting from gig owner: money goes here
+    # From this account: 200 goes to platform account, rest goes to musician
+    number: ${PLATFORM_SETTLEMENT_ACCOUNT:6977519876}
+    bank-code: ${PLATFORM_SETTLEMENT_BANK_CODE:070} # Fidelity Bank code
+    name: ${PLATFORM_SETTLEMENT_ACCOUNT_NAME:Agbaosi Bolarinwa Minasu}
   account:
-    number: 0121753572
-    bank-code: 232 # Sterling Bank code
-    name: Agbaosi Bolarinwa Minasu
+    # Platform account that receives the 200 fee from settlement account
+    number: ${PLATFORM_ACCOUNT:0121753572}
+    bank-code: ${PLATFORM_BANK_CODE:232} # Sterling Bank code
+    name: ${PLATFORM_ACCOUNT_NAME:Agbaosi Bolarinwa Minasu}
 
 logging:
   level:
@@ -45,6 +64,8 @@ logging:
     org.springframework.security: DEBUG
 
 file:
+  storage:
+    type: ${FILE_STORAGE_TYPE:imagekit} # Options: 'local' or 'imagekit'
   upload:
     chat-media-dir: uploads/chat-media
     dispute-evidence-dir: uploads/dispute-evidence
@@ -53,4 +74,38 @@ file:
     performance-video-dir: uploads/performance-videos
     max-file-size: 10MB
     max-request-size: 10MB
+
+# ImageKit Configuration
+imagekit:
+  public-key: ${IMAGEKIT_PUBLIC_KEY:public_VLCxLSEri/ItdDzlbJyoE1fBvBo=}
+  private-key: ${IMAGEKIT_PRIVATE_KEY:private_GQtHFHi4eAzND7UxXAhiT+Q/KZA=}
+  url-endpoint: ${IMAGEKIT_URL_ENDPOINT:https://ik.imagekit.io/elq0dgja0}
+
+# Notification service configuration
+# Termii is a Nigerian provider that supports SMS, Email, and WhatsApp
+# Get your API key from: https://termii.com
+notification:
+  sms:
+    enabled: ${NOTIFICATION_SMS_ENABLED:false}
+  email:
+    enabled: ${NOTIFICATION_EMAIL_ENABLED:false}
+  whatsapp:
+    enabled: ${NOTIFICATION_WHATSAPP_ENABLED:false}
+  provider:
+    sms: ${NOTIFICATION_PROVIDER_SMS:log} # Options: 'log', 'termii'
+    email: ${NOTIFICATION_PROVIDER_EMAIL:log} # Options: 'log', 'termii'
+    whatsapp: ${NOTIFICATION_PROVIDER_WHATSAPP:log} # Options: 'log', 'termii'
+
+# Termii API configuration
+# Sign up at https://termii.com to get your API key
+termii:
+  api-key: ${TERMII_API_KEY:}
+  base-url: ${TERMII_BASE_URL:https://v3.api.termii.com}
+  sender-id: ${TERMII_SENDER_ID:GigWave} # Your registered sender ID
+  sms:
+    enabled: ${TERMII_SMS_ENABLED:false}
+  email:
+    enabled: ${TERMII_EMAIL_ENABLED:false}
+  whatsapp:
+    enabled: ${TERMII_WHATSAPP_ENABLED:false}
 

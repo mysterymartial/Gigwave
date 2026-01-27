@@ -256,107 +256,8 @@ public class OnePipeClientImpl implements OnePipeClient {
         throw new RuntimeException("OnePipe API not properly configured or unavailable");
     }
 
-    @Override
-    public PayoutResponse initiatePayout(PayoutRequest request) {
-        log.info("Initiating transfer (disburse) to account: {}", request.getAccountNumber());
-
-        // OnePipe API structure following OnePipe PWA documentation
-        String requestRef = "REQ_" + System.currentTimeMillis();
-        String transactionRef = "TXN_" + System.currentTimeMillis();
-        
-        // Parse account name to extract firstname and surname
-        String[] nameParts = parseName(request.getAccountName());
-        String firstname = nameParts[0];
-        String surname = nameParts.length > 1 ? nameParts[1] : "";
-        
-        // Convert amount to kobo (1 Naira = 100 kobo)
-        long amountKobo = request.getAmount().multiply(new java.math.BigDecimal("100")).longValue();
-        
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("request_ref", requestRef);
-        payload.put("request_type", "disburse"); // OnePipe uses "disburse" not "transfer"
-        
-        // Auth object for disburse (set to null)
-        Map<String, Object> auth = new HashMap<>();
-        auth.put("type", null);
-        auth.put("secure", null);
-        auth.put("auth_provider", environment);
-        payload.put("auth", auth);
-        
-        // Transaction object
-        Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", "live");
-        transaction.put("transaction_ref", transactionRef);
-        transaction.put("transaction_desc", request.getNarration());
-        transaction.put("amount", amountKobo);
-        
-        // Customer object
-        Map<String, Object> customer = new HashMap<>();
-        customer.put("customer_ref", request.getUserId() != null ? request.getUserId().toString() : "");
-        customer.put("firstname", firstname);
-        customer.put("surname", surname);
-        customer.put("email", request.getEmail() != null ? request.getEmail() : "");
-        customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
-        transaction.put("customer", customer);
-        
-        // Meta object (optional)
-        Map<String, Object> meta = new HashMap<>();
-        meta.put("callback_url", request.getCallbackUrl());
-        transaction.put("meta", meta);
-        
-        // Details object for disburse (destination account and bank)
-        Map<String, Object> details = new HashMap<>();
-        details.put("destination_account", request.getAccountNumber());
-        details.put("destination_bank_code", request.getBankCode());
-        transaction.put("details", details);
-        
-        payload.put("transaction", transaction);
-
-        HttpHeaders headers = createHeaders();
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
-
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    entity,
-                    Map.class
-            );
-
-            Map<String, Object> body = response.getBody();
-            if (body != null) {
-                // Check for errors
-                Object errors = body.get("errors");
-                if (errors != null) {
-                    String errorMessage = "OnePipe API error";
-                    if (errors instanceof java.util.List && !((java.util.List<?>) errors).isEmpty()) {
-                        Object firstError = ((java.util.List<?>) errors).get(0);
-                        if (firstError instanceof Map) {
-                            Object msg = ((Map<?, ?>) firstError).get("message");
-                            errorMessage = msg != null ? msg.toString() : errorMessage;
-                        }
-                    }
-                    log.error("OnePipe disburse error: {}", errorMessage);
-                    throw new RuntimeException("OnePipe disburse failed: " + errorMessage);
-                }
-                
-                Map<String, Object> transactionResponse = (Map<String, Object>) body.getOrDefault("transaction", new HashMap<>());
-                return PayoutResponse.builder()
-                        .status((String) body.getOrDefault("status", "pending"))
-                        .transactionRef((String) transactionResponse.getOrDefault("transaction_ref", transactionRef))
-                        .message((String) body.getOrDefault("message", ""))
-                        .build();
-            }
-        } catch (RuntimeException e) {
-            throw e; // Re-throw our custom exceptions
-        } catch (Exception e) {
-            log.error("Error initiating disburse (payout)", e);
-            throw new RuntimeException("Failed to initiate disburse: " + e.getMessage(), e);
-        }
-
-        // Should not reach here if real API is configured
-        throw new RuntimeException("OnePipe API not properly configured or unavailable");
-    }
+    // NOTE: initiatePayout (disburse) has been removed from OnePipe
+    // Transfers are now handled by TransferClient (Flutterwave/Paystack/etc.)
 
     @Override
     public BankListResponse getSupportedBanks() {
@@ -509,5 +410,3 @@ public class OnePipeClientImpl implements OnePipeClient {
         return Base64.getEncoder().encodeToString(hash);
     }
 }
-
-

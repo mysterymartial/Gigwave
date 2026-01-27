@@ -19,11 +19,6 @@ public interface OnePipeClient {
     DebitResponse validateOtp(String transactionRef, String otp);
 
     /**
-     * Initiate a payout/transfer to a bank account
-     */
-    PayoutResponse initiatePayout(PayoutRequest request);
-
-    /**
      * Get list of supported banks
      */
     BankListResponse getSupportedBanks();
@@ -33,5 +28,3 @@ public interface OnePipeClient {
      */
     boolean verifyWebhookSignature(String payload, String signature);
 }
-
-

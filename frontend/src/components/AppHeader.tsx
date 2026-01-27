@@ -53,6 +53,16 @@ export default function AppHeader() {
             <Link to="/bank-accounts" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
               Payments
             </Link>
+            {user?.role === UserRole.ADMIN && (
+              <>
+                <Link to="/admin/reports" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                  Reports
+                </Link>
+                <Link to="/admin/customers" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                  Customers
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* User Profile & Actions */}

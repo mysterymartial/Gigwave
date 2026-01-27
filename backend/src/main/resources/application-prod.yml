@@ -2,6 +2,7 @@ spring:
   data:
     mongodb:
       # MongoDB Atlas connection string - MUST be set via MONGODB_URI environment variable
+      # Format: mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority
       uri: ${MONGODB_URI}
       database: ${MONGODB_DATABASE:gigwave_prod}
 
@@ -32,3 +33,12 @@ management:
     health:
       show-details: when-authorized
 
+# ImageKit Configuration (Production)
+imagekit:
+  public-key: ${IMAGEKIT_PUBLIC_KEY}
+  private-key: ${IMAGEKIT_PRIVATE_KEY}
+  url-endpoint: ${IMAGEKIT_URL_ENDPOINT}
+
+file:
+  storage:
+    type: ${FILE_STORAGE_TYPE:imagekit}

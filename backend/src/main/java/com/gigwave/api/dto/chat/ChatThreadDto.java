@@ -19,6 +19,3 @@ public class ChatThreadDto {
     private UUID userId2; // For direct messaging
     private LocalDateTime createdAt;
 }
-
-
-

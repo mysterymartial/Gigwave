@@ -15,6 +15,9 @@ import type {
   KycStatus,
   AccountReport,
   ReportStatus,
+  Customer,
+  AdminDebitRequest,
+  AdminDebitResponse,
 } from '../types';
 
 const api = axios.create({
@@ -143,6 +146,14 @@ export const paymentApi = {
       '/payments/mandate/setup/musician',
       null,
       { params: { bankAccountId, maxAmount } }
+    );
+    return response.data;
+  },
+  validateOtp: async (bookingId: string, otp: string) => {
+    const response = await api.post<{ status: string; transactionRef: string; message: string }>(
+      `/payments/bookings/${bookingId}/validate-otp`,
+      null,
+      { params: { otp } }
     );
     return response.data;
   },
@@ -389,4 +400,21 @@ export const accountReportApi = {
     await api.post(`/reports/admin/users/${userId}/enable`, null, { params: { reason } });
   },
 };
+
+// Admin API
+export const adminApi = {
+  getAllCustomers: async () => {
+    const response = await api.get<Customer[]>('/admin/customers');
+    return response.data;
+  },
+  getCustomer: async (customerId: string) => {
+    const response = await api.get<Customer>(`/admin/customers/${customerId}`);
+    return response.data;
+  },
+  debitCustomer: async (customerId: string, data: AdminDebitRequest) => {
+    const response = await api.post<AdminDebitResponse>(`/admin/customers/${customerId}/debit`, data);
+    return response.data;
+  },
+};
+
 

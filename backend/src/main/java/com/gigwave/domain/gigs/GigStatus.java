@@ -7,8 +7,3 @@ public enum GigStatus {
     CANCELLED,
     EXPIRED
 }
-
-
-
-
-

@@ -15,6 +15,3 @@ public interface AccountReportRepository extends MongoRepository<AccountReport, 
     List<AccountReport> findByStatus(ReportStatus status);
     List<AccountReport> findByReportedUserIdAndStatus(UUID reportedUserId, ReportStatus status);
 }
-
-
-

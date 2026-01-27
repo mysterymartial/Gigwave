@@ -12,6 +12,3 @@ public interface FileStorageService {
     String storePerformanceVideo(MultipartFile file, String userId) throws IOException;
     void deleteFile(String fileUrl) throws IOException;
 }
-
-
-

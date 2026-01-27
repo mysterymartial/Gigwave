@@ -22,5 +22,3 @@ public class PayoutRequest {
     private String email;
     private String phone;
 }
-
-

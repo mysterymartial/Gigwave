@@ -31,5 +31,3 @@ public class BookingDto {
     private List<String> postGigMediaUrls;
     private LocalDateTime createdAt;
 }
-
-

@@ -1,7 +1,6 @@
 package com.gigwave.application.reports;
 
 import com.gigwave.domain.reports.AccountReport;
-import com.gigwave.domain.reports.AccountReport;
 import com.gigwave.domain.reports.ReportStatus;
 import com.gigwave.domain.users.User;
 import com.gigwave.infrastructure.persistence.reports.AccountReportRepository;
@@ -138,4 +137,3 @@ public class AccountReportService {
                 .orElseThrow(() -> new IllegalArgumentException("Report not found"));
     }
 }
-

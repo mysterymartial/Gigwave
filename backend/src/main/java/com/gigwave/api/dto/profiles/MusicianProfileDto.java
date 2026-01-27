@@ -25,5 +25,3 @@ public class MusicianProfileDto {
     private String xHandle;
     private List<String> performanceVideoUrls;
 }
-
-

@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class JwtUtilTest {
+public class JwtUtilTest {
     private JwtUtil jwtUtil;
     private UUID testUserId;
     
@@ -82,7 +82,9 @@ class JwtUtilTest {
         // Boundary: invalid token format
         String invalidToken = "invalid.token.here";
         
-        assertThrows(Exception.class, () -> jwtUtil.validateToken(invalidToken, testUserId));
+        // Invalid tokens should return false, not throw exceptions
+        boolean isValid = jwtUtil.validateToken(invalidToken, testUserId);
+        assertFalse(isValid);
     }
     
     @Test
@@ -97,8 +99,3 @@ class JwtUtilTest {
         assertThrows(Exception.class, () -> jwtUtil.validateToken(null, testUserId));
     }
 }
-
-
-
-
-

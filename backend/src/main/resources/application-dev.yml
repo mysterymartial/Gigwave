@@ -1,8 +1,8 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/gigwave_dev
-      database: gigwave_dev
+      uri: ${MONGODB_URI:mongodb://localhost:27017/gigwave_dev}
+      database: ${MONGODB_DATABASE:gigwave_dev}
 
 logging:
   level:

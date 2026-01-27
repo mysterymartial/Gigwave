@@ -16,5 +16,3 @@ public class DebitResponse {
     private String otpReference; // For OTP validation when status is WaitingForOTP
     private String validationUrl; // URL to validate OTP
 }
-
-

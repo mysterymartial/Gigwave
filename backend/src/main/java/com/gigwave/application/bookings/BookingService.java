@@ -44,6 +44,10 @@ public class BookingService {
                 .build();
 
         booking = bookingRepository.save(booking);
+        
+        // Notify organizer that a musician has bid on their gig
+        notificationService.sendNewBidNotification(gig.getOrganizerId(), booking.getId(), acceptedAmount);
+        
         return toDto(booking);
     }
 
@@ -169,4 +173,3 @@ public class BookingService {
                 .build();
     }
 }
-

@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useGetBooking, useMarkBookingDone, useConfirmAndPay } from '../../hooks/useBookings';
 import { useAuth } from '../../hooks/useAuth';
-import { usePlatformFee } from '../../hooks/usePayments';
+import { usePlatformFee, useValidateOtp } from '../../hooks/usePayments';
 import { UserRole, BookingStatus, PaymentStatus } from '../../types';
 import BookingTimeline from '../../components/BookingTimeline';
 
@@ -12,6 +13,9 @@ export default function BookingDetailsPage() {
   const { data: platformFee } = usePlatformFee();
   const markDone = useMarkBookingDone();
   const confirmAndPay = useConfirmAndPay();
+  const validateOtp = useValidateOtp();
+  const [otp, setOtp] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
 
   const handleMarkDone = async () => {
     if (!booking) return;
@@ -25,9 +29,31 @@ export default function BookingDetailsPage() {
   const handleConfirmAndPay = async () => {
     if (!booking) return;
     try {
-      await confirmAndPay.mutateAsync(booking.id);
-    } catch (error) {
+      const updatedBooking = await confirmAndPay.mutateAsync(booking.id);
+      // If payment status is DEBIT_PENDING, OTP might be required
+      // Show OTP input to allow user to enter OTP if needed
+      if (updatedBooking.paymentStatus === PaymentStatus.DEBIT_PENDING) {
+        setShowOtpInput(true);
+      }
+    } catch (error: any) {
       console.error('Failed to confirm and pay', error);
+      alert(error?.response?.data?.message || 'Failed to initiate payment');
+    }
+  };
+
+  const handleValidateOtp = async () => {
+    if (!booking || !otp) return;
+    try {
+      await validateOtp.mutateAsync({ bookingId: booking.id, otp });
+      setShowOtpInput(false);
+      setOtp('');
+      alert('OTP validated successfully');
+    } catch (error: any) {
+      if (error?.response?.data?.message) {
+        alert(error.response.data.message);
+      } else {
+        alert('Failed to validate OTP');
+      }
     }
   };
 
@@ -126,9 +152,41 @@ export default function BookingDetailsPage() {
               </button>
             )}
 
-          {booking.paymentStatus === PaymentStatus.DEBIT_PENDING && (
+          {booking.paymentStatus === PaymentStatus.DEBIT_PENDING && !showOtpInput && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
               <p className="text-yellow-800">Payment is being processed. Please wait...</p>
+            </div>
+          )}
+
+          {showOtpInput && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <p className="text-blue-800 mb-3">Please enter the OTP sent to your phone to complete the payment.</p>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter OTP"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+                  maxLength={6}
+                />
+                <button
+                  onClick={handleValidateOtp}
+                  disabled={validateOtp.isPending || !otp}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {validateOtp.isPending ? 'Validating...' : 'Validate'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowOtpInput(false);
+                    setOtp('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
 

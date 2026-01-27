@@ -7,8 +7,3 @@ public enum PaymentStatus {
     DEBIT_FAILED,
     PAID_OUT
 }
-
-
-
-
-

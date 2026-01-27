@@ -3,6 +3,7 @@ package com.gigwave.api.dto.auth;
 import com.gigwave.domain.users.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -16,11 +17,6 @@ public class RegisterRequest {
     @NotBlank
     private String password;
     
-    @NotBlank
+    @NotNull
     private UserRole role;
 }
-
-
-
-
-

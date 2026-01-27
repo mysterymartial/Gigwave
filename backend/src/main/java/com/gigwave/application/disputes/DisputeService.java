@@ -1,7 +1,6 @@
 package com.gigwave.application.disputes;
 
 import com.gigwave.domain.bookings.Booking;
-import com.gigwave.domain.bookings.Booking;
 import com.gigwave.domain.disputes.Dispute;
 import com.gigwave.domain.disputes.DisputeStatus;
 import com.gigwave.domain.users.User;
@@ -85,4 +84,3 @@ public class DisputeService {
                 .orElseThrow(() -> new IllegalArgumentException("Dispute not found"));
     }
 }
-

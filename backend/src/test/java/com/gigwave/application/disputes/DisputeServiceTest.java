@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class DisputeServiceTest {
+public class DisputeServiceTest {
     @Mock
     private DisputeRepository disputeRepository;
     
@@ -34,12 +34,16 @@ class DisputeServiceTest {
     @Mock
     private UserRepository userRepository;
     
+    @Mock
+    private com.gigwave.application.notifications.NotificationService notificationService;
+    
     @InjectMocks
     private DisputeService disputeService;
     
     private UUID bookingId;
     private UUID raisedBy;
     private UUID disputeId;
+    private UUID gigId;
     private Booking testBooking;
     
     @BeforeEach
@@ -47,9 +51,11 @@ class DisputeServiceTest {
         bookingId = UUID.randomUUID();
         raisedBy = UUID.randomUUID();
         disputeId = UUID.randomUUID();
+        gigId = UUID.randomUUID();
         
         testBooking = Booking.builder()
                 .id(bookingId)
+                .gigId(gigId)
                 .musicianId(raisedBy)
                 .build();
     }
@@ -89,6 +95,7 @@ class DisputeServiceTest {
             dispute.setId(disputeId);
             return dispute;
         });
+        doNothing().when(notificationService).sendDisputeRaisedNotification(any(UUID.class));
         
         Dispute result = disputeService.openDispute(bookingId, raisedBy, "", null);
         
@@ -98,6 +105,7 @@ class DisputeServiceTest {
     
     @Test
     void testOpenDispute_WithNullEvidence() {
+        doNothing().when(notificationService).sendDisputeRaisedNotification(any(UUID.class));
         // Boundary: null evidence URL
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(testBooking));
         when(disputeRepository.save(any(Dispute.class))).thenAnswer(invocation -> {
@@ -130,7 +138,3 @@ class DisputeServiceTest {
         assertNotNull(result.getResolvedAt());
     }
 }
-
-
-
-

@@ -23,8 +23,3 @@ public class BankListResponse {
         private String name;
     }
 }
-
-
-
-
-

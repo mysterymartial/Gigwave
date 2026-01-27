@@ -7,8 +7,3 @@ public enum MessageType {
     VOICE_NOTE,
     LOCATION
 }
-
-
-
-
-

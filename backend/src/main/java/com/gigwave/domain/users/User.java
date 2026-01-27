@@ -39,4 +39,3 @@ public class User {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }
-

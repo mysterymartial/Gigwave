@@ -102,5 +102,3 @@ public class ProfileService {
                 .orElseThrow(() -> new IllegalArgumentException("Organizer profile not found"));
     }
 }
-
-

@@ -23,9 +23,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class GigServiceTest {
+public class GigServiceTest {
     @Mock
     private GigRepository gigRepository;
+    
+    @Mock
+    private com.gigwave.infrastructure.persistence.users.UserRepository userRepository;
+    
+    @Mock
+    private com.gigwave.application.notifications.NotificationService notificationService;
     
     @InjectMocks
     private GigService gigService;
@@ -69,6 +75,7 @@ class GigServiceTest {
             gig.setId(UUID.randomUUID());
             return gig;
         });
+        when(userRepository.findByRole(any(com.gigwave.domain.users.UserRole.class))).thenReturn(Arrays.asList());
         
         // Act
         GigDto result = gigService.createGig(dto);
@@ -98,6 +105,7 @@ class GigServiceTest {
             gig.setId(UUID.randomUUID());
             return gig;
         });
+        when(userRepository.findByRole(any(com.gigwave.domain.users.UserRole.class))).thenReturn(Arrays.asList());
         
         GigDto result = gigService.createGig(dto);
         
@@ -124,6 +132,7 @@ class GigServiceTest {
             gig.setId(UUID.randomUUID());
             return gig;
         });
+        when(userRepository.findByRole(any(com.gigwave.domain.users.UserRole.class))).thenReturn(Arrays.asList());
         
         GigDto result = gigService.createGig(dto);
         
@@ -149,6 +158,7 @@ class GigServiceTest {
             gig.setId(UUID.randomUUID());
             return gig;
         });
+        when(userRepository.findByRole(any(com.gigwave.domain.users.UserRole.class))).thenReturn(Arrays.asList());
         
         GigDto result = gigService.createGig(dto);
         
@@ -257,7 +267,3 @@ class GigServiceTest {
         assertThrows(IllegalArgumentException.class, () -> gigService.getGigById(invalidId));
     }
 }
-
-
-
-

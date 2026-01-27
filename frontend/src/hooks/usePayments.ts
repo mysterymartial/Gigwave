@@ -30,4 +30,11 @@ export const useSetupMusicianMandate = () => {
   });
 };
 
+export const useValidateOtp = () => {
+  return useMutation({
+    mutationFn: ({ bookingId, otp }: { bookingId: string; otp: string }) =>
+      paymentApi.validateOtp(bookingId, otp),
+  });
+};
+
 

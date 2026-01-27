@@ -82,5 +82,3 @@ public class BookingController {
         return ResponseEntity.ok(booking);
     }
 }
-
-

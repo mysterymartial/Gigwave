@@ -17,6 +17,3 @@ public class ReviewReportRequest {
 
     private String adminReview; // Optional admin comments
 }
-
-
-

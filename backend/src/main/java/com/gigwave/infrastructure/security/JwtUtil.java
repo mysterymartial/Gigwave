@@ -64,12 +64,17 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, UUID userId) {
-        final UUID tokenUserId = extractUserId(token);
-        return (tokenUserId.equals(userId) && !isTokenExpired(token));
+        // Handle null or empty tokens (programming errors)
+        if (token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("Token cannot be null or empty");
+        }
+        
+        try {
+            final UUID tokenUserId = extractUserId(token);
+            return (tokenUserId.equals(userId) && !isTokenExpired(token));
+        } catch (Exception e) {
+            // Token is invalid, expired, or malformed
+            return false;
+        }
     }
 }
-
-
-
-
-

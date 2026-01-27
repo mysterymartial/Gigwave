@@ -6,8 +6,3 @@ public enum MandateStatus {
     SUSPENDED,
     REVOKED
 }
-
-
-
-
-

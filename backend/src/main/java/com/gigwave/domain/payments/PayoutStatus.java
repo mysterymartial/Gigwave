@@ -5,8 +5,3 @@ public enum PayoutStatus {
     SUCCESS,
     FAILED
 }
-
-
-
-
-

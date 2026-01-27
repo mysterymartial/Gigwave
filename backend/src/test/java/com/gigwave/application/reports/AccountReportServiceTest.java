@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AccountReportServiceTest {
+public class AccountReportServiceTest {
     @Mock
     private AccountReportRepository reportRepository;
 
@@ -297,10 +297,15 @@ class AccountReportServiceTest {
 
         when(userRepository.findById(reporterId)).thenReturn(Optional.of(reporter));
         when(userRepository.findById(reportedUserId)).thenReturn(Optional.of(reported));
+        when(reportRepository.save(any(AccountReport.class))).thenAnswer(invocation -> {
+            AccountReport report = invocation.getArgument(0);
+            report.setId(reportId);
+            return report;
+        });
+        doNothing().when(notificationService).sendDisputeRaisedNotification(any());
 
         // This should pass service layer but fail at validation
         AccountReport result = accountReportService.createReport(reporterId, reportedUserId, "", null);
         assertNotNull(result);
     }
 }
-

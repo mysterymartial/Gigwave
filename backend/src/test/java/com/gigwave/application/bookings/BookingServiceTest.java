@@ -24,12 +24,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BookingServiceTest {
+public class BookingServiceTest {
     @Mock
     private BookingRepository bookingRepository;
     
     @Mock
     private GigRepository gigRepository;
+    
+    @Mock
+    private com.gigwave.application.notifications.NotificationService notificationService;
     
     @InjectMocks
     private BookingService bookingService;
@@ -76,6 +79,7 @@ class BookingServiceTest {
             booking.setId(bookingId);
             return booking;
         });
+        doNothing().when(notificationService).sendNewBidNotification(any(UUID.class), any(UUID.class), any(BigDecimal.class));
         
         // Act
         var result = bookingService.musicianAcceptsGig(gigId, musicianId, acceptedAmount);
@@ -86,6 +90,7 @@ class BookingServiceTest {
         assertEquals(BookingStatus.REQUESTED, result.getBookingStatus());
         verify(gigRepository).findById(gigId);
         verify(bookingRepository).save(any(Booking.class));
+        verify(notificationService).sendNewBidNotification(eq(organizerId), eq(bookingId), eq(acceptedAmount));
     }
     
     @Test
@@ -116,6 +121,7 @@ class BookingServiceTest {
             booking.setId(bookingId);
             return booking;
         });
+        doNothing().when(notificationService).sendNewBidNotification(any(UUID.class), any(UUID.class), any(BigDecimal.class));
         
         var result = bookingService.musicianAcceptsGig(gigId, musicianId, BigDecimal.ZERO);
         
@@ -133,6 +139,7 @@ class BookingServiceTest {
             booking.setId(bookingId);
             return booking;
         });
+        doNothing().when(notificationService).sendNewBidNotification(any(UUID.class), any(UUID.class), any(BigDecimal.class));
         
         var result = bookingService.musicianAcceptsGig(gigId, musicianId, largeAmount);
         
@@ -192,7 +199,3 @@ class BookingServiceTest {
         verify(bookingRepository, never()).save(any(Booking.class));
     }
 }
-
-
-
-

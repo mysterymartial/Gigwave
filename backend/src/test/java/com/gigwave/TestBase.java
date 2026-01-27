@@ -15,4 +15,3 @@ import org.springframework.test.context.ActiveProfiles;
 public abstract class TestBase {
     // Base class for integration tests with embedded MongoDB
 }
-

@@ -195,3 +195,30 @@ export interface PlatformFeeInfo {
   description: string;
 }
 
+// Admin types
+export interface Customer {
+  id: string;
+  phone: string;
+  email?: string;
+  role: UserRole;
+  isDisabled?: boolean;
+  createdAt: string;
+  hasActiveMandate: boolean;
+  mandateRef?: string;
+}
+
+export interface AdminDebitRequest {
+  amount: number;
+  reason: string;
+}
+
+export interface AdminDebitResponse {
+  debitTransactionId: string;
+  customerId: string;
+  amount: number;
+  status: string;
+  transactionRef: string;
+  message: string;
+  attemptedAt: string;
+}
+

@@ -19,8 +19,3 @@ public class KycDocumentDto {
     private String documentUrl;
     private LocalDateTime uploadedAt;
 }
-
-
-
-
-

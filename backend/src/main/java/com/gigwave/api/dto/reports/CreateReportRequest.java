@@ -22,6 +22,3 @@ public class CreateReportRequest {
 
     private String evidenceUrl; // Optional
 }
-
-
-

@@ -7,6 +7,3 @@ public enum ReportStatus {
     REJECTED,
     RESOLVED
 }
-
-
-

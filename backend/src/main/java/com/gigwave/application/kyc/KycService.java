@@ -61,7 +61,3 @@ public class KycService {
         return updateKycStatus(userId, KycStatus.REJECTED);
     }
 }
-
-
-
-

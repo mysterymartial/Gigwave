@@ -29,5 +29,3 @@ public class GigDto {
     private GigStatus status;
     private LocalDateTime createdAt;
 }
-
-

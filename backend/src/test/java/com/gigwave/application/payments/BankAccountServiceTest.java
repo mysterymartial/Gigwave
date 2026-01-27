@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BankAccountServiceTest {
+public class BankAccountServiceTest {
     @Mock
     private BankAccountRepository bankAccountRepository;
     
@@ -162,7 +162,3 @@ class BankAccountServiceTest {
         assertEquals(2, result.size());
     }
 }
-
-
-
-

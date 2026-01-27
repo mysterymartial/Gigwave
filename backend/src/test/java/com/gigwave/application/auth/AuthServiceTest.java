@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+public class AuthServiceTest {
     @Mock
     private UserService userService;
     
@@ -171,8 +171,3 @@ class AuthServiceTest {
         assertThrows(IllegalArgumentException.class, () -> authService.login(request));
     }
 }
-
-
-
-
-

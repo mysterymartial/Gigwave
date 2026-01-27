@@ -20,5 +20,3 @@ public class OrganizerProfileDto {
     private String tiktokHandle;
     private String xHandle;
 }
-
-

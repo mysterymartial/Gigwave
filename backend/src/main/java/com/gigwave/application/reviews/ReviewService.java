@@ -62,7 +62,3 @@ public class ReviewService {
         // For now, we'll leave it as the rating is computed on-demand
     }
 }
-
-
-
-

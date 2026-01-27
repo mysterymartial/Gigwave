@@ -24,8 +24,3 @@ public class ChatMessageDto {
     private Double locationLng;
     private LocalDateTime createdAt;
 }
-
-
-
-
-

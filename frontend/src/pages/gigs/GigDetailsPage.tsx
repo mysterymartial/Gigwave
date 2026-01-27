@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { UserRole } from '../../types';
 import { format } from 'date-fns';
 import { useState } from 'react';
+import LocationMap from '../../components/LocationMap';
 
 export default function GigDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,10 +49,6 @@ export default function GigDetailsPage() {
                 <span className="ml-2">{format(new Date(gig.eventDate), 'MMM dd, yyyy h:mm a')}</span>
               </div>
               <div className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium text-gray-900 dark:text-white">Location:</span>
-                <span className="ml-2">{gig.location}</span>
-              </div>
-              <div className="text-gray-700 dark:text-gray-300">
                 <span className="font-medium text-gray-900 dark:text-white">Budget:</span>
                 <span className="ml-2 text-teal-600 dark:text-teal-400">
                   ₦{gig.budgetMin?.toLocaleString()} - ₦{gig.budgetMax?.toLocaleString()}
@@ -62,6 +59,17 @@ export default function GigDetailsPage() {
                 <span className="ml-2">{gig.status}</span>
               </div>
             </div>
+          </div>
+
+          {/* Location Map */}
+          <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Location</h2>
+            <LocationMap
+              location={gig.location}
+              latitude={gig.latitude}
+              longitude={gig.longitude}
+              height="400px"
+            />
           </div>
 
           {user?.role === UserRole.MUSICIAN && gig.status === 'OPEN' && (

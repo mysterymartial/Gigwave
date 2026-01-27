@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class KycServiceTest {
+public class KycServiceTest {
     @Mock
     private UserRepository userRepository;
     
@@ -115,7 +115,3 @@ class KycServiceTest {
         assertEquals(2, result.size());
     }
 }
-
-
-
-

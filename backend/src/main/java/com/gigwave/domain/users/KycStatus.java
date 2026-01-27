@@ -5,8 +5,3 @@ public enum KycStatus {
     VERIFIED,
     REJECTED
 }
-
-
-
-
-

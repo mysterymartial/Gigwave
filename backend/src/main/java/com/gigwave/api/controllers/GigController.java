@@ -77,8 +77,3 @@ public class GigController {
         return ResponseEntity.noContent().build();
     }
 }
-
-
-
-
-

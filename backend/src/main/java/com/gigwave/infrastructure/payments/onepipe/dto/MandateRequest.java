@@ -21,5 +21,3 @@ public class MandateRequest {
     private String email;
     private String phone;
 }
-
-

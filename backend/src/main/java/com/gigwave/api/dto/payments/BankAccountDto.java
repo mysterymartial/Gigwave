@@ -20,8 +20,3 @@ public class BankAccountDto {
     private String accountName;
     private Boolean isPayoutDefault;
 }
-
-
-
-
-

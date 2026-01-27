@@ -19,8 +19,3 @@ public class AuthResponse {
     private String email;
     private UserRole role;
 }
-
-
-
-
-

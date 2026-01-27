@@ -52,7 +52,3 @@ public class PaymentScheduler {
         log.info("Completed scheduled processing of pending payouts");
     }
 }
-
-
-
-

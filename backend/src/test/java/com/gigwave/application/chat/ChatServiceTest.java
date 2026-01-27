@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ChatServiceTest {
+public class ChatServiceTest {
     @Mock
     private ChatThreadRepository chatThreadRepository;
     
@@ -149,7 +150,7 @@ class ChatServiceTest {
         User sender = User.builder().id(musicianId).isDisabled(false).build();
         when(chatThreadRepository.findById(threadId)).thenReturn(Optional.of(thread));
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
-        when(gigRepository.findById(gigId)).thenReturn(Optional.of(gig));
+        // gigRepository.findById is not needed here since sender is musician (not organizer)
         when(userRepository.findById(musicianId)).thenReturn(Optional.of(sender));
         when(chatMessageRepository.save(any(ChatMessage.class))).thenAnswer(invocation -> {
             ChatMessage msg = invocation.getArgument(0);
@@ -425,8 +426,9 @@ class ChatServiceTest {
         ChatThread thread1 = ChatThread.builder().id(UUID.randomUUID()).userId1(userId1).userId2(userId2).build();
         ChatThread thread2 = ChatThread.builder().id(UUID.randomUUID()).userId1(userId2).userId2(userId1).build();
         
-        when(chatThreadRepository.findByUserId1(userId1)).thenReturn(Arrays.asList(thread1));
-        when(chatThreadRepository.findByUserId2(userId1)).thenReturn(Arrays.asList(thread2));
+        // Use mutable ArrayList instead of Arrays.asList() to avoid UnsupportedOperationException
+        when(chatThreadRepository.findByUserId1(userId1)).thenReturn(new ArrayList<>(Arrays.asList(thread1)));
+        when(chatThreadRepository.findByUserId2(userId1)).thenReturn(new ArrayList<>(Arrays.asList(thread2)));
         
         List<ChatThread> result = chatService.getUserDirectThreads(userId1);
         
@@ -436,8 +438,9 @@ class ChatServiceTest {
 
     @Test
     void testGetUserDirectThreads_Empty() {
-        when(chatThreadRepository.findByUserId1(userId1)).thenReturn(Arrays.asList());
-        when(chatThreadRepository.findByUserId2(userId1)).thenReturn(Arrays.asList());
+        // Use mutable ArrayList instead of Arrays.asList() to avoid UnsupportedOperationException
+        when(chatThreadRepository.findByUserId1(userId1)).thenReturn(new ArrayList<>());
+        when(chatThreadRepository.findByUserId2(userId1)).thenReturn(new ArrayList<>());
         
         List<ChatThread> result = chatService.getUserDirectThreads(userId1);
         
@@ -470,6 +473,3 @@ class ChatServiceTest {
         assertEquals("First", result.get(0).getText());
     }
 }
-
-
-

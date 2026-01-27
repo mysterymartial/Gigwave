@@ -5,8 +5,3 @@ public enum UserRole {
     MUSICIAN,
     ADMIN
 }
-
-
-
-
-

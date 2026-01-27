@@ -19,6 +19,7 @@ import DisputesPage from './pages/disputes/DisputesPage';
 import KycPage from './pages/kyc/KycPage';
 import AccountReportPage from './pages/reports/AccountReportPage';
 import AdminReportsPage from './pages/reports/AdminReportsPage';
+import AdminCustomersPage from './pages/admin/AdminCustomersPage';
 
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -54,6 +55,7 @@ function App() {
           <Route path="kyc" element={<KycPage />} />
           <Route path="reports/new" element={<AccountReportPage />} />
           <Route path="admin/reports" element={<AdminReportsPage />} />
+          <Route path="admin/customers" element={<AdminCustomersPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

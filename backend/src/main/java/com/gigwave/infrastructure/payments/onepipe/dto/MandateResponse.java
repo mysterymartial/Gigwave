@@ -15,8 +15,3 @@ public class MandateResponse {
     private String authorizationUrl;
     private String message;
 }
-
-
-
-
-

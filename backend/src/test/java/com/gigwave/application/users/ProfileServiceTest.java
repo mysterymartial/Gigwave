@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileServiceTest {
+public class ProfileServiceTest {
     @Mock
     private MusicianProfileRepository musicianProfileRepository;
     
@@ -213,6 +213,3 @@ class ProfileServiceTest {
         assertNull(result.getMinFee());
     }
 }
-
-
-

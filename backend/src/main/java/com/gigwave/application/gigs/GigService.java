@@ -4,6 +4,10 @@ import com.gigwave.api.dto.gigs.GigDto;
 import com.gigwave.domain.gigs.Gig;
 import com.gigwave.infrastructure.persistence.gigs.GigRepository;
 import com.gigwave.domain.gigs.GigStatus;
+import com.gigwave.domain.users.User;
+import com.gigwave.domain.users.UserRole;
+import com.gigwave.infrastructure.persistence.users.UserRepository;
+import com.gigwave.application.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GigService {
     private final GigRepository gigRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public GigDto createGig(GigDto dto) {
@@ -36,6 +42,18 @@ public class GigService {
                 .build();
 
         gig = gigRepository.save(gig);
+        
+        // Notify all musicians about the new gig
+        List<User> musicians = userRepository.findByRole(UserRole.MUSICIAN);
+        for (User musician : musicians) {
+            notificationService.sendNewGigNotification(
+                musician.getId(), 
+                gig.getId(), 
+                gig.getTitle(), 
+                gig.getLocation()
+            );
+        }
+        
         return toDto(gig);
     }
 
@@ -113,4 +131,3 @@ public class GigService {
                 .build();
     }
 }
-

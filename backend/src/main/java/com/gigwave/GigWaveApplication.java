@@ -11,8 +11,3 @@ public class GigWaveApplication {
         SpringApplication.run(GigWaveApplication.class, args);
     }
 }
-
-
-
-
-

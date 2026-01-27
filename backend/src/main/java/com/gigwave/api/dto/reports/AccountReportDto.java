@@ -25,6 +25,3 @@ public class AccountReportDto {
     private LocalDateTime createdAt;
     private LocalDateTime reviewedAt;
 }
-
-
-

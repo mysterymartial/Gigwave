@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "file.storage.type", havingValue = "local", matchIfMissing = false)
 public class LocalFileStorageService implements FileStorageService {
     private final Path chatMediaStorageLocation;
     private final Path disputeEvidenceStorageLocation;
@@ -85,6 +86,11 @@ public class LocalFileStorageService implements FileStorageService {
             throw new IOException("File name is empty");
         }
 
+        // Check if file is empty
+        if (file.isEmpty() || file.getSize() == 0) {
+            throw new IOException("File is empty");
+        }
+
         String fileExtension = "";
         int lastDotIndex = originalFilename.lastIndexOf('.');
         if (lastDotIndex > 0) {
@@ -101,4 +107,3 @@ public class LocalFileStorageService implements FileStorageService {
         return "/uploads/" + folderName + "/" + fileName;
     }
 }
-

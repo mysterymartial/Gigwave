@@ -16,13 +16,16 @@ import com.gigwave.infrastructure.persistence.payments.PayoutRepository;
 import com.gigwave.infrastructure.persistence.users.UserRepository;
 import com.gigwave.infrastructure.payments.onepipe.OnePipeClient;
 import com.gigwave.infrastructure.payments.onepipe.dto.*;
+import com.gigwave.infrastructure.payments.transfer.TransferClient;
+import com.gigwave.infrastructure.payments.transfer.dto.TransferRequest;
+import com.gigwave.infrastructure.payments.transfer.dto.TransferResponse;
 import com.gigwave.application.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,6 +38,7 @@ import java.util.UUID;
 @Slf4j
 public class PaymentService {
     private final OnePipeClient onePipeClient;
+    private final TransferClient transferClient;
     private final PaymentMandateRepository mandateRepository;
     private final BankAccountRepository bankAccountRepository;
     private final DebitTransactionRepository debitRepository;
@@ -50,14 +54,17 @@ public class PaymentService {
     @Value("${platform.fee.amount:200}")
     private BigDecimal platformFeeAmount;
 
-    @Value("${platform.account.number}")
-    private String platformAccountNumber;
+    @Value("${platform.settlement.number:6977519876}")
+    private String settlementAccountNumber;
 
-    @Value("${platform.account.bank-code}")
-    private String platformBankCode;
+    @Value("${platform.settlement.bank-code:070}")
+    private String settlementBankCode;
 
-    @Value("${platform.account.name}")
-    private String platformAccountName;
+    @Value("${platform.settlement.name:Agbaosi Bolarinwa Minasu}")
+    private String settlementAccountName;
+
+    @Value("${flutterwave.transfer.charge:10}")
+    private BigDecimal flutterwaveCharge;
 
     @Transactional
     public MandateResponse setupMandateForOrganizer(UUID userId, UUID bankAccountId, BigDecimal maxAmount) {
@@ -146,12 +153,13 @@ public class PaymentService {
                 .orElseThrow(() -> new IllegalArgumentException("Organizer bank account not found"));
 
         // Calculate total amount: acceptedAmount + platform fee (200 Naira)
+        // Organizer MUST pay extra 200 - this is enforced by adding platform fee to total
         BigDecimal totalAmount = booking.getAcceptedAmount().add(platformFeeAmount);
 
         DebitRequest request = DebitRequest.builder()
                 .mandateRef(mandate.getMandateRef())
                 .amount(totalAmount)
-                .narration("Payment for gig booking " + bookingId + " (including ₦" + platformFeeAmount + " platform fee)")
+                .narration("Payment for gig booking " + bookingId + " (Gig: ₦" + booking.getAcceptedAmount() + " + Platform fee: ₦" + platformFeeAmount + ")")
                 .callbackUrl(serverUrl + "/api/payments/webhooks/debit")
                 .userId(organizerUser.getId())
                 .email(organizerUser.getEmail())
@@ -235,7 +243,19 @@ public class PaymentService {
 
     @Transactional
     public void createPayoutOnDebitSuccess(Booking booking) {
-        // Transfer to musician (full acceptedAmount)
+        // SETTLEMENT ACCOUNT FLOW (Settlement account IS Flutterwave account):
+        // 1. Money is debited from organizer (acceptedAmount + ₦200) → Settlement account (6977519876) receives it
+        // 2. From settlement account:
+        //    - Transfer (acceptedAmount - Flutterwave charge) to musician
+        //    - Flutterwave automatically deducts their charge (₦10-15) from settlement account balance
+        //    - Platform keeps: exactly ₦200 (guaranteed)
+        //
+        // Calculation:
+        // Settlement receives: acceptedAmount + ₦200
+        // Transfer to musician: acceptedAmount - Flutterwave charge
+        // Flutterwave charges settlement: Flutterwave charge (for the transfer)
+        // Settlement remaining: (acceptedAmount + ₦200) - (acceptedAmount - Flutterwave charge) - Flutterwave charge = ₦200
+        
         BankAccount payoutAccount = bankAccountRepository
                 .findByUserIdAndIsPayoutDefaultTrue(booking.getMusicianId())
                 .orElseThrow(() -> new IllegalStateException("No default payout account set"));
@@ -243,64 +263,46 @@ public class PaymentService {
         User musicianUser = userRepository.findById(booking.getMusicianId())
                 .orElseThrow(() -> new IllegalArgumentException("Musician user not found"));
 
-        PayoutRequest musicianPayoutRequest = PayoutRequest.builder()
+        // Calculate amount to transfer: acceptedAmount - Flutterwave charge
+        // This ensures exactly ₦200 remains in settlement account after Flutterwave takes their fee
+        BigDecimal amountToTransfer = booking.getAcceptedAmount().subtract(flutterwaveCharge);
+        
+        if (amountToTransfer.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Amount to transfer after Flutterwave charges is zero or negative. Accepted amount: " + 
+                    booking.getAcceptedAmount() + ", Flutterwave charge: " + flutterwaveCharge);
+        }
+
+        TransferRequest musicianTransferRequest = TransferRequest.builder()
                 .accountNumber(payoutAccount.getAccountNumber())
                 .bankCode(payoutAccount.getBankCode())
                 .accountName(payoutAccount.getAccountName())
-                .amount(booking.getAcceptedAmount())
-                .narration("Payout for gig booking " + booking.getId())
+                .amount(amountToTransfer) // acceptedAmount - Flutterwave charge (to guarantee exactly ₦200 remains)
+                .narration("Gig payment for booking " + booking.getId() + " (from settlement account 6977519876, Flutterwave charge: ₦" + flutterwaveCharge + " deducted)")
                 .callbackUrl(serverUrl + "/api/payments/webhooks/payout")
                 .userId(musicianUser.getId())
                 .email(musicianUser.getEmail())
                 .phone(musicianUser.getPhone())
                 .build();
 
-        PayoutResponse musicianResponse = onePipeClient.initiatePayout(musicianPayoutRequest);
+        TransferResponse musicianResponse = transferClient.initiateTransfer(musicianTransferRequest);
 
         Payout musicianPayout = Payout.builder()
                 .bookingId(booking.getId())
                 .musicianId(booking.getMusicianId())
                 .bankAccountId(payoutAccount.getId())
-                .amount(booking.getAcceptedAmount())
+                .amount(amountToTransfer) // Store actual amount transferred
                 .providerRef(musicianResponse.getTransactionRef())
                 .status(PayoutStatus.PENDING)
                 .attemptedAt(LocalDateTime.now())
                 .build();
 
         payoutRepository.save(musicianPayout);
-
-        // Transfer platform fee to GigWave account
-        // Parse platform account name for customer info
-        String[] platformNameParts = platformAccountName.split("\\s+", 2);
-        String platformFirstname = platformNameParts.length > 0 ? platformNameParts[0] : "GigWave";
-        String platformSurname = platformNameParts.length > 1 ? platformNameParts[1] : "Platform";
         
-        PayoutRequest platformPayoutRequest = PayoutRequest.builder()
-                .accountNumber(platformAccountNumber)
-                .bankCode(platformBankCode)
-                .accountName(platformAccountName)
-                .amount(platformFeeAmount)
-                .narration("Platform fee for gig booking " + booking.getId())
-                .callbackUrl(serverUrl + "/api/payments/webhooks/payout")
-                .userId(null) // Platform account, no user ID
-                .email("platform@gigwave.com") // Platform email
-                .phone("09010849782") // Platform phone (primary: 09010849782, backup: 08159089791)
-                .build();
-
-        PayoutResponse platformResponse = onePipeClient.initiatePayout(platformPayoutRequest);
-
-        // Create a payout record for platform fee (musicianId can be null or use a system user)
-        Payout platformPayout = Payout.builder()
-                .bookingId(booking.getId())
-                .musicianId(null) // Platform fee, not associated with a musician
-                .bankAccountId(null) // Platform account
-                .amount(platformFeeAmount)
-                .providerRef(platformResponse.getTransactionRef())
-                .status(PayoutStatus.PENDING)
-                .attemptedAt(LocalDateTime.now())
-                .build();
-
-        payoutRepository.save(platformPayout);
+        // Platform keeps: exactly ₦200 in settlement account
+        // Calculation: (acceptedAmount + ₦200) - (acceptedAmount - Flutterwave charge) - Flutterwave charge = ₦200
+        
+        log.info("Settlement flow initiated for booking {}: Transferring {} to musician (acceptedAmount: {} - Flutterwave charge: {}). Platform keeps exactly ₦{} in settlement account {} after Flutterwave deducts their charge", 
+                booking.getId(), amountToTransfer, booking.getAcceptedAmount(), flutterwaveCharge, platformFeeAmount, settlementAccountNumber);
     }
 
     @Transactional
@@ -394,4 +396,3 @@ public class PaymentService {
         return response;
     }
 }
-

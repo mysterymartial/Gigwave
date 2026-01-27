@@ -14,8 +14,3 @@ public class PayoutResponse {
     private String transactionRef;
     private String message;
 }
-
-
-
-
-

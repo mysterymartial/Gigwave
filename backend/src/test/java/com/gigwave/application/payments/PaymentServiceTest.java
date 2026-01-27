@@ -10,7 +10,12 @@ import com.gigwave.infrastructure.persistence.payments.*;
 import com.gigwave.infrastructure.payments.onepipe.OnePipeClient;
 import com.gigwave.infrastructure.payments.onepipe.dto.DebitResponse;
 import com.gigwave.infrastructure.payments.onepipe.dto.MandateResponse;
-import com.gigwave.infrastructure.payments.onepipe.dto.PayoutResponse;
+import com.gigwave.infrastructure.payments.transfer.TransferClient;
+import com.gigwave.infrastructure.payments.transfer.dto.TransferRequest;
+import com.gigwave.infrastructure.payments.transfer.dto.TransferResponse;
+import com.gigwave.infrastructure.persistence.users.UserRepository;
+import com.gigwave.application.notifications.NotificationService;
+import com.gigwave.domain.users.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,9 +34,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PaymentServiceTest {
+public class PaymentServiceTest {
     @Mock
     private OnePipeClient onePipeClient;
+    
+    @Mock
+    private TransferClient transferClient;
     
     @Mock
     private PaymentMandateRepository mandateRepository;
@@ -51,6 +59,12 @@ class PaymentServiceTest {
     @Mock
     private GigRepository gigRepository;
     
+    @Mock
+    private UserRepository userRepository;
+    
+    @Mock
+    private NotificationService notificationService;
+    
     @InjectMocks
     private PaymentService paymentService;
     
@@ -58,23 +72,28 @@ class PaymentServiceTest {
     private PaymentMandate testMandate;
     private Booking testBooking;
     private UUID userId;
+    private UUID musicianId;
     private UUID bankAccountId;
     private UUID mandateId;
     private UUID bookingId;
+    private UUID gigId;
     
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
+        musicianId = UUID.randomUUID();
         bankAccountId = UUID.randomUUID();
         mandateId = UUID.randomUUID();
         bookingId = UUID.randomUUID();
+        gigId = UUID.randomUUID();
         
         // Set platform fee configuration using reflection
         ReflectionTestUtils.setField(paymentService, "platformFeeAmount", new BigDecimal("200"));
-        ReflectionTestUtils.setField(paymentService, "platformAccountNumber", "0121753572");
-        ReflectionTestUtils.setField(paymentService, "platformBankCode", "232");
-        ReflectionTestUtils.setField(paymentService, "platformAccountName", "Agbaosi Bolarinwa Minasu");
+        ReflectionTestUtils.setField(paymentService, "settlementAccountNumber", "6977519876");
+        ReflectionTestUtils.setField(paymentService, "settlementBankCode", "070");
+        ReflectionTestUtils.setField(paymentService, "settlementAccountName", "Agbaosi Bolarinwa Minasu");
         ReflectionTestUtils.setField(paymentService, "serverUrl", "http://localhost:8080");
+        ReflectionTestUtils.setField(paymentService, "flutterwaveCharge", new BigDecimal("10"));
         
         testBankAccount = BankAccount.builder()
                 .id(bankAccountId)
@@ -97,6 +116,8 @@ class PaymentServiceTest {
         
         testBooking = Booking.builder()
                 .id(bookingId)
+                .gigId(gigId)
+                .musicianId(musicianId)
                 .organizerMandateId(mandateId)
                 .acceptedAmount(new BigDecimal("75000"))
                 .paymentStatus(PaymentStatus.NOT_INITIATED)
@@ -174,6 +195,8 @@ class PaymentServiceTest {
     void testInitiateDebitForBooking_Success() {
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(testBooking));
         when(mandateRepository.findById(mandateId)).thenReturn(Optional.of(testMandate));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).email("organizer@test.com").phone("08012345678").build()));
+        when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.of(testBankAccount));
         when(onePipeClient.initiateDebit(any())).thenReturn(
                 DebitResponse.builder()
                         .status("pending")
@@ -186,7 +209,8 @@ class PaymentServiceTest {
             return debit;
         });
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-        when(gigRepository.findById(any())).thenReturn(Optional.of(Gig.builder().organizerId(userId).build()));
+        when(gigRepository.findById(gigId)).thenReturn(Optional.of(Gig.builder().id(gigId).organizerId(userId).build()));
+        doNothing().when(notificationService).sendPaymentInitiatedNotification(any(UUID.class), any(UUID.class));
         
         var result = paymentService.initiateDebitForBooking(bookingId);
         
@@ -235,9 +259,26 @@ class PaymentServiceTest {
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(testBooking));
         when(debitRepository.save(any(DebitTransaction.class))).thenReturn(debit);
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-        when(bankAccountRepository.findByUserIdAndIsPayoutDefaultTrue(any())).thenReturn(Optional.of(testBankAccount));
-        when(onePipeClient.initiatePayout(any())).thenReturn(
-                PayoutResponse.builder().transactionRef("PAYOUT_123").build()
+        // Create a separate bank account for musician
+        BankAccount musicianBankAccount = BankAccount.builder()
+                .id(UUID.randomUUID())
+                .userId(musicianId)
+                .bankName("GTB")
+                .bankCode("058")
+                .accountNumber("9876543210")
+                .accountName("Musician User")
+                .isPayoutDefault(true)
+                .build();
+        
+        when(bankAccountRepository.findByUserIdAndIsPayoutDefaultTrue(musicianId)).thenReturn(Optional.of(musicianBankAccount));
+        when(userRepository.findById(musicianId)).thenReturn(Optional.of(User.builder().id(musicianId).email("musician@test.com").phone("08098765432").build()));
+        when(transferClient.initiateTransfer(any(TransferRequest.class))).thenReturn(
+                TransferResponse.builder()
+                        .status("pending")
+                        .transactionRef("TRANSFER_123")
+                        .message("Transfer initiated")
+                        .provider("flutterwave")
+                        .build()
         );
         when(payoutRepository.save(any(Payout.class))).thenAnswer(invocation -> {
             Payout payout = invocation.getArgument(0);
@@ -251,8 +292,8 @@ class PaymentServiceTest {
         // Assert
         verify(debitRepository).findByProviderRef(transactionRef);
         verify(bookingRepository).save(any(Booking.class));
-        // Verify two payouts: one for musician, one for platform
-        verify(onePipeClient, times(2)).initiatePayout(any());
+        // Verify one transfer: to musician (platform fee stays in settlement account)
+        verify(transferClient, times(1)).initiateTransfer(any(TransferRequest.class));
         assertEquals(DebitStatus.SUCCESS, debit.getStatus());
         assertEquals(PaymentStatus.DEBIT_SUCCESS, testBooking.getPaymentStatus());
     }
@@ -272,6 +313,8 @@ class PaymentServiceTest {
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(testBooking));
         when(debitRepository.save(any(DebitTransaction.class))).thenReturn(debit);
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        when(gigRepository.findById(gigId)).thenReturn(Optional.of(Gig.builder().id(gigId).organizerId(userId).build()));
+        doNothing().when(notificationService).sendPaymentFailedNotification(any(UUID.class), any(UUID.class));
         
         paymentService.handleDebitWebhook(transactionRef, "failed");
         
@@ -326,5 +369,3 @@ class PaymentServiceTest {
         assertTrue(result.get("description").toString().contains("200"));
     }
 }
-
-
