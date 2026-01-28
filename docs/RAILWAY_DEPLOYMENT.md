@@ -25,10 +25,8 @@ This guide will help you deploy the GigWave backend to Railway.
 
 ### Step 2: Configure Build Settings
 
-Railway will auto-detect Spring Boot, but verify:
 - **Root Directory**: `backend`
-- **Build Command**: `mvn clean package -DskipTests` (or Railway will auto-detect)
-- **Start Command**: `java -jar target/gigwave-backend-1.0.0.jar` (or use `backend/nixpacks.toml` / Railway UI)
+- **Builder**: `backend/railway.json` sets `DOCKERFILE`. Railway builds with `backend/Dockerfile` (multi-stage Maven → JRE). Do **not** override the Start Command in the dashboard; the Dockerfile’s `ENTRYPOINT` runs `java -jar app.jar`.
 
 ### Step 3: Set Environment Variables
 
