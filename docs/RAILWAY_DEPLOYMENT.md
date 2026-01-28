@@ -34,18 +34,20 @@ Railway will auto-detect Spring Boot, but verify:
 
 Go to your Railway project → **Variables** tab and add:
 
-#### Required Variables
+#### Minimum required to start (otherwise app crashes)
 
 ```bash
-# Spring Profile
 SPRING_PROFILES_ACTIVE=prod
-
-# MongoDB (use MongoDB Atlas connection string)
-MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://USER:PASS@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority
 MONGODB_DATABASE=gigwave_prod
-
-# JWT Authentication
 JWT_SECRET=your-strong-secret-key-minimum-32-characters-long
+```
+
+Without `MONGODB_URI` or `JWT_SECRET`, the app fails at startup. File storage defaults to `local`; platform vars have placeholders so the app can boot.
+
+#### Recommended / optional
+
+```bash
 JWT_EXPIRATION=86400000
 
 # OnePipe API
@@ -55,16 +57,16 @@ ONEPIPE_BASE_URL=https://api.onepipe.io/v2/transact
 ONEPIPE_ENV=production
 ONEPIPE_BILLER_CODE=
 
-# ImageKit (File Storage)
-IMAGEKIT_PUBLIC_KEY=your-imagekit-public-key
-IMAGEKIT_PRIVATE_KEY=your-imagekit-private-key
-IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-imagekit-id
-FILE_STORAGE_TYPE=imagekit
-
-# CORS (Important: Set your frontend domain)
+# CORS (set your frontend domain)
 CORS_ORIGINS=https://your-frontend-domain.com,https://www.your-frontend-domain.com
 
-# Flutterwave (Optional - for transfers)
+# ImageKit (optional; default is local storage)
+# FILE_STORAGE_TYPE=imagekit
+# IMAGEKIT_PUBLIC_KEY=...
+# IMAGEKIT_PRIVATE_KEY=...
+# IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-id
+
+# Flutterwave (optional - for transfers)
 FLUTTERWAVE_SECRET_KEY=your-flutterwave-secret-key
 FLUTTERWAVE_BASE_URL=https://api.flutterwave.com/v3
 FLUTTERWAVE_ENABLED=true
@@ -77,9 +79,9 @@ NOTIFICATION_SMS_ENABLED=false
 NOTIFICATION_EMAIL_ENABLED=false
 ```
 
-#### Platform Configuration (required for production)
+#### Platform Configuration (before real payouts)
 
-Set these via Railway env; **do not use defaults** for real account data. Names must match `application.yml`:
+Prod uses placeholder defaults so the app can start. **Set real values** in Railway Variables before processing real payouts:
 
 ```bash
 PLATFORM_FEE_AMOUNT=200
@@ -96,7 +98,8 @@ PLATFORM_ACCOUNT_NAME=Agbaosi Bolarinwa Minasu
 1. Railway will automatically start building when you push to your connected branch
 2. Or click **"Deploy"** in the Railway dashboard
 3. Wait for the build to complete (usually 3-5 minutes)
-4. Check the **Logs** tab for any errors
+4. Check the **Deploy Logs** (runtime, not just build). Scroll past the `@ConditionalOnClass` / "Did not match" lines—those are normal. Look for the real error: `Exception`, `Caused by`, `Could not resolve placeholder 'MONGODB_URI'`, `Failed to configure a DataSource`, etc.
+5. If you see **"Could not resolve placeholder 'MONGODB_URI'"** or **"Could not resolve placeholder 'JWT_SECRET'"**: add those variables in Railway → Variables and redeploy.
 
 ### Step 5: Get Your Backend URL
 

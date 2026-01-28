@@ -32,12 +32,20 @@ management:
     health:
       show-details: when-authorized
 
-# ImageKit Configuration (Production)
-imagekit:
-  public-key: ${IMAGEKIT_PUBLIC_KEY}
-  private-key: ${IMAGEKIT_PRIVATE_KEY}
-  url-endpoint: ${IMAGEKIT_URL_ENDPOINT}
-
+# File storage: default local so app can start without ImageKit.
+# Set FILE_STORAGE_TYPE=imagekit and IMAGEKIT_* vars to use ImageKit in prod.
 file:
   storage:
-    type: ${FILE_STORAGE_TYPE:imagekit}
+    type: ${FILE_STORAGE_TYPE:local}
+
+# Platform settlement: placeholders so PaymentService bean can start.
+# Replace with real values in Railway Variables before processing real payouts.
+platform:
+  settlement:
+    number: ${PLATFORM_SETTLEMENT_NUMBER:0000000000}
+    bank-code: ${PLATFORM_SETTLEMENT_BANK_CODE:070}
+    name: ${PLATFORM_SETTLEMENT_NAME:Platform}
+  account:
+    number: ${PLATFORM_ACCOUNT_NUMBER:0000000000}
+    bank-code: ${PLATFORM_ACCOUNT_BANK_CODE:070}
+    name: ${PLATFORM_ACCOUNT_NAME:Platform}
