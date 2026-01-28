@@ -16,6 +16,8 @@ spring:
 
 server:
   port: ${PORT:8080}  # Railway provides PORT environment variable
+  # Public URL for webhooks (e.g. OnePipe callback). Set SERVER_URL in Railway/env.
+  url: ${SERVER_URL:http://localhost:8080}
   error:
     include-message: always
     include-binding-errors: always

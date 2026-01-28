@@ -48,6 +48,11 @@ export default function AppHeader() {
               <Link to="/gigs" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
                 Gigs
               </Link>
+              {user?.role === UserRole.EVENT_OWNER && (
+                <Link to="/my-gigs" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                  My Gigs
+                </Link>
+              )}
               <Link to="/bookings" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
                 Messages
               </Link>

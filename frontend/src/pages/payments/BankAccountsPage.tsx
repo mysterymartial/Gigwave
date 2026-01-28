@@ -1,26 +1,47 @@
 import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBankAccounts, useAddBankAccount, useSetDefaultBankAccount, useDeleteBankAccount } from '../../hooks/useBankAccounts';
-import { usePaymentBanks } from '../../hooks/usePayments';
+import { usePaymentBanks, useSetupOrganizerMandate, useSetupMusicianMandate } from '../../hooks/usePayments';
+import { useAuth } from '../../hooks/useAuth';
+import { UserRole } from '../../types';
 import { getAuthErrorMessage } from '../../lib/authErrors';
 
 export default function BankAccountsPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: bankAccounts, isLoading } = useBankAccounts();
   const { data: banks } = usePaymentBanks();
   const addAccount = useAddBankAccount();
   const setDefault = useSetDefaultBankAccount();
   const deleteAccount = useDeleteBankAccount();
+  const setupOrganizerMandate = useSetupOrganizerMandate();
+  const setupMusicianMandate = useSetupMusicianMandate();
 
   const [showForm, setShowForm] = useState(false);
+  const [showMandateForm, setShowMandateForm] = useState<string | null>(null); // accountId
   const [bankCode, setBankCode] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountName, setAccountName] = useState('');
   const [isPayoutDefault, setIsPayoutDefault] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const MANDATE_MAX_AMOUNT_NGN = 5_000_000;
+
   const hasNoAccounts = !bankAccounts || bankAccounts.length === 0;
   useEffect(() => {
     if (!isLoading && hasNoAccounts) setShowForm(true);
   }, [isLoading, hasNoAccounts]);
+
+  // Show mandate prompt after first account is added
+  useEffect(() => {
+    if (bankAccounts && bankAccounts.length === 1 && !showMandateForm && !showForm) {
+      // Small delay to let user see the account was added
+      const timer = setTimeout(() => {
+        setShowMandateForm(bankAccounts[0].id);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [bankAccounts, showMandateForm, showForm]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -41,9 +62,46 @@ export default function BankAccountsPage() {
           setAccountNumber('');
           setAccountName('');
           setIsPayoutDefault(false);
+          // After adding account, prompt to set up mandate
+          if (bankAccounts && bankAccounts.length === 0) {
+            // First account added - show mandate prompt
+            setTimeout(() => {
+              const newAccount = bankAccounts?.[0] || bankAccounts?.[bankAccounts.length - 1];
+              if (newAccount) {
+                setShowMandateForm(newAccount.id);
+              }
+            }, 500);
+          }
         },
         onError: (err) => {
           setError(getAuthErrorMessage(err, 'Failed to add bank account. Please try again.'));
+        },
+      }
+    );
+  };
+
+  const handleSetupMandate = (accountId: string) => {
+    setError(null);
+    const idempotencyKey = `mandate-${accountId}-${Date.now()}`;
+    const mandateFn = user?.role === UserRole.EVENT_OWNER ? setupOrganizerMandate : setupMusicianMandate;
+    mandateFn.mutate(
+      {
+        bankAccountId: accountId,
+        maxAmount: MANDATE_MAX_AMOUNT_NGN,
+        idempotencyKey,
+      },
+      {
+        onSuccess: (response) => {
+          if (response.authorizationUrl) {
+            // Redirect to OnePipe authorization page
+            window.location.href = response.authorizationUrl;
+          } else {
+            setError('Mandate setup initiated. Please check your email or SMS for authorization.');
+            setShowMandateForm(null);
+          }
+        },
+        onError: (err) => {
+          setError(getAuthErrorMessage(err, 'Failed to set up mandate. Please try again.'));
         },
       }
     );
@@ -66,6 +124,37 @@ export default function BankAccountsPage() {
         {hasNoAccounts && (
           <div className="mb-6 p-4 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-200">
             Add your bank account to continue using GigWave.
+          </div>
+        )}
+        {!hasNoAccounts && bankAccounts && bankAccounts.length > 0 && (
+          <div className="mb-6 p-4 rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-semibold">Ready to start using GigWave?</p>
+                <p className="text-sm mt-1">
+                  {user?.role === UserRole.EVENT_OWNER
+                    ? 'Set up a payment mandate to enable secure payments for your gigs.'
+                    : 'Set up a payment mandate to receive payouts securely.'}
+                </p>
+              </div>
+              <div className="flex gap-2 ml-4">
+                {user?.role === UserRole.EVENT_OWNER ? (
+                  <button
+                    onClick={() => navigate('/gigs/create')}
+                    className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                  >
+                    Post a Gig
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate('/gigs')}
+                    className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                  >
+                    Find Gigs
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
         <div className="flex justify-between items-center mb-6">
@@ -160,21 +249,29 @@ export default function BankAccountsPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex space-x-2">
-                    {!account.isPayoutDefault && (
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex space-x-2">
                       <button
-                        onClick={() => setDefault.mutate(account.id)}
-                        className="text-teal-400 hover:text-teal-300 text-sm font-medium"
+                        onClick={() => setShowMandateForm(account.id)}
+                        className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                       >
-                        Set Default
+                        Set Up Mandate
                       </button>
-                    )}
-                    <button
-                      onClick={() => deleteAccount.mutate(account.id)}
-                      className="text-red-400 hover:text-red-300 text-sm font-medium"
-                    >
-                      Delete
-                    </button>
+                      {!account.isPayoutDefault && (
+                        <button
+                          onClick={() => setDefault.mutate(account.id)}
+                          className="text-teal-400 hover:text-teal-300 text-sm font-medium"
+                        >
+                          Set Default
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteAccount.mutate(account.id)}
+                        className="text-red-400 hover:text-red-300 text-sm font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -183,6 +280,50 @@ export default function BankAccountsPage() {
             <div className="text-center py-12 text-gray-400">No bank accounts added yet</div>
           )}
         </div>
+
+        {/* Mandate Setup Modal - max amount fixed at ₦5,000,000; BVN not collected */}
+        {showMandateForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-emerald-900/95 dark:bg-emerald-900/95 rounded-2xl border border-emerald-700/50 p-8 max-w-md w-full shadow-xl">
+              <h2 className="text-2xl font-semibold mb-4 text-white">Set Up Payment Mandate</h2>
+              <p className="text-emerald-200/80 mb-2 text-sm">
+                {user?.role === UserRole.EVENT_OWNER
+                  ? 'Authorize GigWave to debit your account for secure payments when booking musicians.'
+                  : 'Authorize GigWave to pay you securely for completed gigs.'}
+              </p>
+              <p className="text-emerald-200/60 mb-6 text-xs">
+                Maximum transaction amount: ₦5,000,000
+              </p>
+              {error && (
+                <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMandateForm(null);
+                    setError(null);
+                  }}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetupMandate(showMandateForm)}
+                  disabled={setupOrganizerMandate.isPending || setupMusicianMandate.isPending}
+                  className="flex-1 bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
+                >
+                  {setupOrganizerMandate.isPending || setupMusicianMandate.isPending
+                    ? 'Setting up...'
+                    : 'Set Up Mandate'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ public class GigService {
     @Transactional
     public GigDto createGig(GigDto dto) {
         Gig gig = Gig.builder()
+                .id(UUID.randomUUID())
                 .organizerId(dto.getOrganizerId())
                 .title(dto.getTitle())
                 .description(dto.getDescription())

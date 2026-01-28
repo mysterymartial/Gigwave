@@ -46,6 +46,9 @@ public class PaymentController {
             @RequestParam(required = false) String bvn,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
+        if (userId == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
         return mandateWithIdempotency(idempotencyKey,
                 () -> paymentService.setupMandateForOrganizer(userId, bankAccountId, maxAmount, bvn));
     }
@@ -58,6 +61,9 @@ public class PaymentController {
             @RequestParam(required = false) String bvn,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
+        if (userId == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
         return mandateWithIdempotency(idempotencyKey,
                 () -> paymentService.setupMandateForMusician(userId, bankAccountId, maxAmount, bvn));
     }
