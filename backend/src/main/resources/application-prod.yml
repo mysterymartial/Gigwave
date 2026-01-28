@@ -11,16 +11,14 @@ logging:
     com.gigwave: WARN
     org.springframework: WARN
     root: INFO
-  file:
-    name: /var/log/gigwave/application.log
-  pattern:
-    file: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  # No file logging: Railway captures stdout; /var/log often not writable in containers
 
 cors:
   allowed-origins: ${CORS_ORIGINS:https://gigwave.com}
 
 server:
-  port: ${PORT:8080}  # Railway provides PORT environment variable
+  port: ${PORT:8080}
+  address: 0.0.0.0   # Required for Railway: listen on all interfaces
   error:
     include-stacktrace: never
     include-message: on-param
