@@ -41,3 +41,5 @@ rubbish.txt
 
 
 
+.env
+backend/src/main/resources/application-local.yml
