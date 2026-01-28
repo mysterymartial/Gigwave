@@ -19,6 +19,9 @@ public class UserService {
 
     @Transactional
     public User registerUser(RegisterRequest request) {
+        if (request.getRole() == UserRole.ADMIN) {
+            throw new IllegalArgumentException("Admin registration is not allowed");
+        }
         if (userRepository.existsByPhone(request.getPhone())) {
             throw new IllegalArgumentException("Phone number already registered");
         }
@@ -44,6 +47,11 @@ public class UserService {
 
     public User getUserByPhone(String phone) {
         return userRepository.findByPhone(phone)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }

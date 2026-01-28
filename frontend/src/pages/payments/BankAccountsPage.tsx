@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBankAccounts, useAddBankAccount, useSetDefaultBankAccount, useDeleteBankAccount } from '../../hooks/useBankAccounts';
 import { usePaymentBanks, useSetupOrganizerMandate, useSetupMusicianMandate } from '../../hooks/usePayments';
+import { useMusicianProfile } from '../../hooks/useProfiles';
 import { useAuth } from '../../hooks/useAuth';
 import { UserRole } from '../../types';
 import { getAuthErrorMessage } from '../../lib/authErrors';
@@ -11,6 +12,7 @@ export default function BankAccountsPage() {
   const navigate = useNavigate();
   const { data: bankAccounts, isLoading } = useBankAccounts();
   const { data: banks } = usePaymentBanks();
+  const { data: musicianProfile } = useMusicianProfile({ enabled: user?.role === UserRole.MUSICIAN });
   const addAccount = useAddBankAccount();
   const setDefault = useSetDefaultBankAccount();
   const deleteAccount = useDeleteBankAccount();
@@ -94,10 +96,18 @@ export default function BankAccountsPage() {
         onSuccess: (response) => {
           if (response.authorizationUrl) {
             // Redirect to OnePipe authorization page
+            // After authorization, user will return and Layout will enforce 3 videos if musician
             window.location.href = response.authorizationUrl;
           } else {
             setError('Mandate setup initiated. Please check your email or SMS for authorization.');
             setShowMandateForm(null);
+            // For musicians: after mandate setup, check if they need to add videos
+            if (user?.role === UserRole.MUSICIAN) {
+              const videoCount = musicianProfile?.performanceVideoUrls?.length || 0;
+              if (videoCount < 3) {
+                setTimeout(() => navigate('/profile'), 2000);
+              }
+            }
           }
         },
         onError: (err) => {

@@ -2,10 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../lib/api';
 import type { MusicianProfile, OrganizerProfile } from '../types';
 
-export const useMusicianProfile = () => {
+export const useMusicianProfile = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['musicianProfile'],
     queryFn: () => profileApi.getMusicianProfile(),
+    enabled: options?.enabled !== false,
   });
 };
 

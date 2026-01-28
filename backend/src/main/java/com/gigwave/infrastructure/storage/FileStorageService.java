@@ -10,5 +10,6 @@ public interface FileStorageService {
     String storeKycDocument(MultipartFile file, String userId) throws IOException;
     String storeReportEvidence(MultipartFile file, String userId) throws IOException;
     String storePerformanceVideo(MultipartFile file, String userId) throws IOException;
+    String storeVenueImage(MultipartFile file, String userId) throws IOException;
     void deleteFile(String fileUrl) throws IOException;
 }

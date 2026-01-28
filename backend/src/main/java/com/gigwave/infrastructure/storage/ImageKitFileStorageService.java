@@ -62,6 +62,11 @@ public class ImageKitFileStorageService implements FileStorageService {
     }
 
     @Override
+    public String storeVenueImage(MultipartFile file, String userId) throws IOException {
+        return storeFile(file, "venue-images", userId);
+    }
+
+    @Override
     public void deleteFile(String fileUrl) throws IOException {
         try {
             // Extract file ID from URL

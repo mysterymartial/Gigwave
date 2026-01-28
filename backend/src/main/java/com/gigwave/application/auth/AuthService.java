@@ -33,7 +33,10 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userService.getUserByPhone(request.getPhone());
+        String phoneOrEmail = request.getPhone().trim();
+        User user = phoneOrEmail.contains("@")
+                ? userService.getUserByEmail(phoneOrEmail)
+                : userService.getUserByPhone(phoneOrEmail);
         
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid credentials");

@@ -16,9 +16,9 @@ export default function AdminCustomersPage() {
   // Redirect if not admin
   if (user?.role !== UserRole.ADMIN) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-800">Access denied. Admin privileges required.</p>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6">
+          <p className="text-red-200">Access denied. Admin privileges required.</p>
         </div>
       </div>
     );
@@ -65,70 +65,70 @@ export default function AdminCustomersPage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+            <thead className="bg-emerald-800/60">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-100 uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-100 uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-100 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-100 uppercase tracking-wider">
                   Mandate
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-100 uppercase tracking-wider">
                   Created
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-100 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-emerald-700/30">
               {customers?.map((customer) => (
-                <tr key={customer.id}>
+                <tr key={customer.id} className="hover:bg-emerald-900/30">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-white">
                       {customer.phone}
                     </div>
                     {customer.email && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{customer.email}</div>
+                      <div className="text-sm text-emerald-200/80">{customer.email}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-teal-500/30 text-teal-200 border border-teal-500/50">
                       {customer.role}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {customer.isDisabled ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500/30 text-red-200 border border-red-500/50">
                         Disabled
                       </span>
                     ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500/30 text-green-200 border border-green-500/50">
                         Active
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-200/90">
                     {customer.hasActiveMandate ? (
-                      <span className="text-green-600 dark:text-green-400">Active</span>
+                      <span className="text-green-400">Active</span>
                     ) : (
-                      <span className="text-red-600 dark:text-red-400">None</span>
+                      <span className="text-red-400">None</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-200/80">
                     {format(new Date(customer.createdAt), 'MMM dd, yyyy')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     {customer.hasActiveMandate && !customer.isDisabled && (
                       <button
                         onClick={() => setSelectedCustomerId(customer.id)}
-                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        className="text-red-400 hover:text-red-300 transition-colors"
                       >
                         Debit
                       </button>
@@ -143,39 +143,39 @@ export default function AdminCustomersPage() {
 
       {/* Debit Modal */}
       {selectedCustomerId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Debit Customer</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-emerald-900/95 dark:bg-emerald-900/95 rounded-2xl border border-emerald-700/50 p-6 max-w-md w-full shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-4">Debit Customer</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-emerald-100 mb-1">
                   Amount (₦)
                 </label>
                 <input
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border border-emerald-700/50 rounded-lg bg-gray-800/80 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="0.00"
                   min="1"
                   step="0.01"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-emerald-100 mb-1">
                   Reason *
                 </label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border border-emerald-700/50 rounded-lg bg-gray-800/80 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="e.g., Fraudulent activity detected"
                   rows={3}
                   required
                 />
               </div>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-md p-3">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3">
+                <p className="text-sm text-yellow-200">
                   <strong>Note:</strong> Money will be debited from the customer's account and sent to the configured settlement account.
                 </p>
               </div>
@@ -186,14 +186,14 @@ export default function AdminCustomersPage() {
                     setAmount('');
                     setReason('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 px-4 py-2 border border-emerald-700/50 rounded-lg text-emerald-200 hover:bg-emerald-900/60 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleDebit(selectedCustomerId)}
                   disabled={debitCustomer.isPending || !amount || !reason}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-colors"
                 >
                   {debitCustomer.isPending ? 'Processing...' : 'Debit Customer'}
                 </button>

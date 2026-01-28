@@ -11,8 +11,8 @@ public class RegisterRequest {
     @NotBlank
     private String phone;
     
-    @Email
-    private String email;
+    @Email(message = "Must be a valid email address")
+    private String email; // optional; omit or null when not provided
     
     @NotBlank
     private String password;

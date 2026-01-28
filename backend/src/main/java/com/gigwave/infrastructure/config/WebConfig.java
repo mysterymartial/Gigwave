@@ -22,6 +22,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.upload.performance-video-dir:uploads/performance-videos}")
     private String performanceVideoDir;
 
+    @Value("${file.upload.venue-image-dir:uploads/venue-images}")
+    private String venueImageDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
@@ -30,7 +33,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "file:" + disputeEvidenceDir + "/",
                         "file:" + kycDocumentDir + "/",
                         "file:" + reportEvidenceDir + "/",
-                        "file:" + performanceVideoDir + "/"
+                        "file:" + performanceVideoDir + "/",
+                        "file:" + venueImageDir + "/"
                 );
     }
 }

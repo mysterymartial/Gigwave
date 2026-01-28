@@ -21,17 +21,20 @@ public class LocalFileStorageService implements FileStorageService {
     private final Path kycDocumentStorageLocation;
     private final Path reportEvidenceStorageLocation;
     private final Path performanceVideoStorageLocation;
+    private final Path venueImageStorageLocation;
 
     public LocalFileStorageService(@Value("${file.upload.chat-media-dir:uploads/chat-media}") String chatMediaDir,
                                    @Value("${file.upload.dispute-evidence-dir:uploads/dispute-evidence}") String disputeEvidenceDir,
                                    @Value("${file.upload.kyc-document-dir:uploads/kyc-documents}") String kycDocumentDir,
                                    @Value("${file.upload.report-evidence-dir:uploads/report-evidence}") String reportEvidenceDir,
-                                   @Value("${file.upload.performance-video-dir:uploads/performance-videos}") String performanceVideoDir) {
+                                   @Value("${file.upload.performance-video-dir:uploads/performance-videos}") String performanceVideoDir,
+                                   @Value("${file.upload.venue-image-dir:uploads/venue-images}") String venueImageDir) {
         this.chatMediaStorageLocation = Paths.get(chatMediaDir).toAbsolutePath().normalize();
         this.disputeEvidenceStorageLocation = Paths.get(disputeEvidenceDir).toAbsolutePath().normalize();
         this.kycDocumentStorageLocation = Paths.get(kycDocumentDir).toAbsolutePath().normalize();
         this.reportEvidenceStorageLocation = Paths.get(reportEvidenceDir).toAbsolutePath().normalize();
         this.performanceVideoStorageLocation = Paths.get(performanceVideoDir).toAbsolutePath().normalize();
+        this.venueImageStorageLocation = Paths.get(venueImageDir).toAbsolutePath().normalize();
 
         try {
             Files.createDirectories(this.chatMediaStorageLocation);
@@ -39,6 +42,7 @@ public class LocalFileStorageService implements FileStorageService {
             Files.createDirectories(this.kycDocumentStorageLocation);
             Files.createDirectories(this.reportEvidenceStorageLocation);
             Files.createDirectories(this.performanceVideoStorageLocation);
+            Files.createDirectories(this.venueImageStorageLocation);
         } catch (Exception ex) {
             throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
         }
@@ -67,6 +71,11 @@ public class LocalFileStorageService implements FileStorageService {
     @Override
     public String storePerformanceVideo(MultipartFile file, String userId) throws IOException {
         return storeFile(file, performanceVideoStorageLocation, "performance", userId);
+    }
+
+    @Override
+    public String storeVenueImage(MultipartFile file, String userId) throws IOException {
+        return storeFile(file, venueImageStorageLocation, "venue", userId);
     }
 
     @Override

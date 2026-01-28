@@ -131,4 +131,31 @@ public class FileUploadController {
             return ResponseEntity.status(500).body(Map.of("error", "Failed to upload video: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/venue-image")
+    public ResponseEntity<Map<String, String>> uploadVenueImage(
+            @RequestParam("file") MultipartFile file,
+            @CurrentUser UUID userId
+    ) {
+        try {
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+            }
+
+            // Validate file type is image
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File must be an image"));
+            }
+
+            String fileUrl = fileStorageService.storeVenueImage(file, userId.toString());
+            return ResponseEntity.ok(Map.of("url", fileUrl, "message", "Image uploaded successfully"));
+        } catch (IOException e) {
+            log.error("Error uploading venue image", e);
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to upload image: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error uploading venue image", e);
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to upload image. Please try again."));
+        }
+    }
 }

@@ -2,11 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateGig } from '../../hooks/useGigs';
 import { useAuth } from '../../hooks/useAuth';
+import { useUploadVenueImage } from '../../hooks/useFiles';
 
 export default function CreateGigPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const createGig = useCreateGig();
+  const uploadVenueImage = useUploadVenueImage();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,7 +16,31 @@ export default function CreateGigPage() {
     location: '',
     budgetMin: '',
     budgetMax: '',
+    venuePictureUrl: '',
   });
+  const [imageUploading, setImageUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    setImageUploading(true);
+    try {
+      const result = await uploadVenueImage.mutateAsync(file);
+      setFormData({ ...formData, venuePictureUrl: result.url });
+      e.target.value = '';
+    } catch (error) {
+      console.error('Failed to upload image', error);
+      alert('Failed to upload image');
+    } finally {
+      setImageUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,6 +53,7 @@ export default function CreateGigPage() {
         location: formData.location,
         budgetMin: parseFloat(formData.budgetMin),
         budgetMax: parseFloat(formData.budgetMax),
+        venuePictureUrl: formData.venuePictureUrl || undefined,
       });
       navigate(`/gigs/${gig.id}`);
     } catch (error) {
@@ -102,6 +129,30 @@ export default function CreateGigPage() {
               onChange={(e) => setFormData({ ...formData, budgetMax: e.target.value })}
             />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-emerald-100 mb-1">Venue Image (Optional)</label>
+          {formData.venuePictureUrl ? (
+            <div className="mb-2">
+              <img src={formData.venuePictureUrl} alt="Venue" className="w-full h-48 object-cover rounded-lg border border-emerald-700/50" />
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, venuePictureUrl: '' })}
+                className="mt-2 text-sm text-red-400 hover:text-red-300"
+              >
+                Remove Image
+              </button>
+            </div>
+          ) : (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={imageUploading}
+              className="block w-full text-sm text-emerald-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-500 file:text-white hover:file:bg-teal-400 file:cursor-pointer disabled:opacity-50"
+            />
+          )}
+          {imageUploading && <p className="text-sm text-emerald-200/60 mt-1">Uploading image...</p>}
         </div>
         <div className="flex justify-end space-x-4">
           <button

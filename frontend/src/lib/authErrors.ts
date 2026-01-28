@@ -14,6 +14,7 @@ export function getAuthErrorMessage(
     const status = res.status;
 
     // Backend ErrorResponse shape: { message: string, error?: string }
+    // Always check for message first, regardless of status code
     if (data && typeof data === 'object' && 'message' in data && typeof (data as { message: unknown }).message === 'string') {
       const msg = (data as { message: string }).message;
       if (msg) return msg;
@@ -31,9 +32,11 @@ export function getAuthErrorMessage(
       }
     }
 
-    // Generic by status
+    // Generic by status (only if no specific message was found above)
     if (status === 401) return 'Invalid phone or password.';
     if (status === 403) return 'Access denied.';
+    if (status === 502) return 'Payment service error. Please try again later.';
+    if (status === 503) return 'Service temporarily unavailable. Please try again later.';
     if (status >= 500) return 'Server error. Please try again later.';
     if (status >= 400) return 'Invalid request. Check your input.';
   }

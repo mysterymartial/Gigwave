@@ -416,6 +416,20 @@ export const fileApi = {
     );
     return response.data;
   },
+  uploadVenueImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<{ url: string; message: string }>(
+      '/files/venue-image',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 // Account Report API

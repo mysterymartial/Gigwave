@@ -35,5 +35,11 @@ export const useUploadPerformanceVideo = () => {
   });
 };
 
+export const useUploadVenueImage = () => {
+  return useMutation({
+    mutationFn: (file: File) => fileApi.uploadVenueImage(file),
+  });
+};
+
 
 

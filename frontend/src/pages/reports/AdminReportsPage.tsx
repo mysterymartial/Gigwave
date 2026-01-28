@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { usePendingReports, useReviewReport, useDisableAccount, useEnableAccount } from '../../hooks/useAccountReports';
+import { usePendingReports, useReviewReport } from '../../hooks/useAccountReports';
 import { ReportStatus } from '../../types';
 import { format } from 'date-fns';
 
 export default function AdminReportsPage() {
   const { data: reports, isLoading } = usePendingReports();
   const reviewReport = useReviewReport();
-  const disableAccount = useDisableAccount();
-  const enableAccount = useEnableAccount();
 
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [reviewStatus, setReviewStatus] = useState<ReportStatus>(ReportStatus.APPROVED);
@@ -35,37 +33,45 @@ export default function AdminReportsPage() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+          <p className="text-gray-400 mt-4">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Admin - Account Reports</h1>
+    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-white mb-6">Admin - Account Reports</h1>
 
-      <div className="space-y-4">
-        {reports && reports.length > 0 ? (
-          reports.map((report) => (
-            <div key={report.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="space-y-4">
+          {reports && reports.length > 0 ? (
+            reports.map((report) => (
+              <div key={report.id} className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-xl border border-emerald-700/40 p-6 shadow-lg">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Report ID: {report.id}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Reporter: {report.reporterId}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Reported User: {report.reportedUserId}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-emerald-200/80">Report ID: {report.id}</p>
+                  <p className="text-sm text-emerald-200/80">Reporter: {report.reporterId}</p>
+                  <p className="text-sm text-emerald-200/80">Reported User: {report.reportedUserId}</p>
+                  <p className="text-sm text-emerald-200/80">
                     Created: {format(new Date(report.createdAt), 'MMM dd, yyyy h:mm a')}
                   </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  report.status === ReportStatus.PENDING ? 'bg-yellow-100 text-yellow-800' :
-                  report.status === ReportStatus.APPROVED ? 'bg-green-100 text-green-800' :
-                  'bg-red-100 text-red-800'
+                  report.status === ReportStatus.PENDING ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/50' :
+                  report.status === ReportStatus.APPROVED ? 'bg-green-500/30 text-green-200 border border-green-500/50' :
+                  'bg-red-500/30 text-red-200 border border-red-500/50'
                 }`}>
                   {report.status}
                 </span>
               </div>
               <div className="mb-4">
-                <p className="font-semibold text-gray-900 dark:text-white mb-2">Reason:</p>
-                <p className="text-gray-700 dark:text-gray-300">{report.reason}</p>
+                <p className="font-semibold text-white mb-2">Reason:</p>
+                <p className="text-emerald-200/90">{report.reason}</p>
               </div>
               {report.evidenceUrl && (
                 <div className="mb-4">
@@ -73,7 +79,7 @@ export default function AdminReportsPage() {
                     href={report.evidenceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline text-sm"
+                    className="text-teal-400 hover:text-teal-300 text-sm"
                   >
                     View Evidence
                   </a>
@@ -131,7 +137,7 @@ export default function AdminReportsPage() {
               ) : (
                 <button
                   onClick={() => setSelectedReportId(report.id)}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-400 font-semibold transition-colors"
                 >
                   Review Report
                 </button>
@@ -139,8 +145,9 @@ export default function AdminReportsPage() {
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">No pending reports</div>
+          <div className="text-center py-12 text-gray-400">No pending reports</div>
         )}
+      </div>
       </div>
     </div>
   );

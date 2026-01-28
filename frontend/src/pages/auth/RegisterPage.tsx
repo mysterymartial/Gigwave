@@ -25,13 +25,20 @@ export default function RegisterPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    const trimmedPhone = phone.trim();
+    const trimmedEmail = email ? email.trim() : '';
+    if (!trimmedPhone) {
+      setError('Phone number is required.');
+      return;
+    }
     try {
-      await register.mutateAsync({
-        phone: phone.trim(),
-        email: (email && email.trim()) || undefined,
+      const payload: { phone: string; email?: string; password: string; role: UserRole } = {
+        phone: trimmedPhone,
         password,
         role,
-      });
+      };
+      if (trimmedEmail) payload.email = trimmedEmail;
+      await register.mutateAsync(payload);
       // Enforce bank account: after registration send user to add bank account
       navigate('/bank-accounts', { replace: true });
     } catch (err: unknown) {

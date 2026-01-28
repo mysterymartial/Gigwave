@@ -17,7 +17,7 @@ export default function LoginPage() {
       await login.mutateAsync({ phone, password });
       navigate('/', { replace: true });
     } catch (err: unknown) {
-      setError(getAuthErrorMessage(err, 'Sign in failed. Check your phone and password.'));
+      setError(getAuthErrorMessage(err, 'Sign in failed. Check your credentials.'));
     }
   };
 
@@ -43,7 +43,7 @@ export default function LoginPage() {
             Sign in to GigWave
           </h2>
           <p className="text-center text-emerald-200/80 text-sm mb-6">
-            Enter your phone and password to continue
+            Enter your phone or email and password to continue
           </p>
 
           {error && (
@@ -55,14 +55,14 @@ export default function LoginPage() {
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-emerald-100 mb-1">
-                Phone Number
+                Phone or email
               </label>
               <input
                 id="phone"
                 name="phone"
-                type="tel"
+                type="text"
                 required
-                autoComplete="tel"
+                autoComplete="username"
                 className="block w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 placeholder="08012345678"
                 value={phone}

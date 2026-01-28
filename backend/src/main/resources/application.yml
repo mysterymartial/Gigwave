@@ -72,6 +72,7 @@ file:
     kyc-document-dir: uploads/kyc-documents
     report-evidence-dir: uploads/report-evidence
     performance-video-dir: uploads/performance-videos
+    venue-image-dir: uploads/venue-images
     max-file-size: 10MB
     max-request-size: 10MB
 
