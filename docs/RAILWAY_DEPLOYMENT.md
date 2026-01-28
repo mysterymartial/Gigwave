@@ -79,15 +79,16 @@ NOTIFICATION_EMAIL_ENABLED=false
 
 #### Platform Configuration (required for production)
 
-Set these via Railway env; **do not use defaults** for real account data:
+Set these via Railway env; **do not use defaults** for real account data. Names must match `application.yml`:
 
 ```bash
-PLATFORM_SETTLEMENT_ACCOUNT=<your-settlement-account>
-PLATFORM_SETTLEMENT_BANK_CODE=<bank-code>
-PLATFORM_SETTLEMENT_ACCOUNT_NAME=<account-name>
-PLATFORM_ACCOUNT=<your-platform-account>
-PLATFORM_BANK_CODE=<bank-code>
-PLATFORM_ACCOUNT_NAME=<account-name>
+PLATFORM_FEE_AMOUNT=200
+PLATFORM_SETTLEMENT_NUMBER=<your-settlement-nuban>
+PLATFORM_SETTLEMENT_BANK_CODE=070
+PLATFORM_SETTLEMENT_NAME=Agbaosi Bolarinwa Minasu
+PLATFORM_ACCOUNT_NUMBER=<your-platform-nuban>
+PLATFORM_ACCOUNT_BANK_CODE=070
+PLATFORM_ACCOUNT_NAME=Agbaosi Bolarinwa Minasu
 ```
 
 ### Step 4: Deploy
