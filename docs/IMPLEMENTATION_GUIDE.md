@@ -47,11 +47,11 @@ DebitRequest request = DebitRequest.builder()
 
 ### Required Setup:
 
-1. **Create `.env` file in frontend directory:**
+1. **Create `.env` file in frontend directory** (see `frontend/.env.example`). Add:
 ```env
-VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+VITE_GOOGLE_MAPS_API_KEY=<your-key-from-google-console>
 ```
-Get a key from [Google Cloud Console](https://console.cloud.google.com/) (Maps JavaScript API). Never commit real keys.
+Get a key from [Google Cloud Console](https://console.cloud.google.com/) (Maps JavaScript API). **Never put real keys in docs or commit `.env`.**
 
 2. **Install dependency:**
 ```bash

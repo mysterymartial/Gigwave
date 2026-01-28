@@ -27,6 +27,7 @@ public class UserService {
         }
 
         User user = User.builder()
+                .id(UUID.randomUUID())
                 .phone(request.getPhone())
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))

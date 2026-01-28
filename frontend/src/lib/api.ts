@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type {
   AuthResponse,
+  User,
   Gig,
   Booking,
   Bank,
@@ -21,8 +22,21 @@ import type {
   DisputeStatus,
 } from '../types';
 
+function authResponseToUser(data: AuthResponse): User {
+  return {
+    id: String(data.userId),
+    phone: data.phone,
+    email: data.email,
+    role: data.role,
+  };
+}
+
+const baseURL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/api`
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -43,7 +57,8 @@ export const authApi = {
     const response = await api.post<AuthResponse>('/auth/register', data);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      localStorage.setItem('user', JSON.stringify(authResponseToUser(response.data)));
+      window.dispatchEvent(new Event('gigwave-auth-change'));
     }
     return response.data;
   },
@@ -51,7 +66,8 @@ export const authApi = {
     const response = await api.post<AuthResponse>('/auth/login', data);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      localStorage.setItem('user', JSON.stringify(authResponseToUser(response.data)));
+      window.dispatchEvent(new Event('gigwave-auth-change'));
     }
     return response.data;
   },

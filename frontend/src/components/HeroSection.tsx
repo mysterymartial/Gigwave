@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { UserRole } from '../types';
 
 export default function HeroSection() {
   const { user } = useAuth();
@@ -11,8 +10,8 @@ export default function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Side - Content */}
           <div className="text-gray-900 dark:text-white">
-            {/* Location Tag */}
-            <div className="inline-block bg-green-600 text-white px-4 py-1 rounded-md text-sm font-medium mb-6">
+            {/* Location Tag - green badge per design */}
+            <div className="inline-block bg-emerald-500 dark:bg-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-medium mb-6">
               LIVE IN LAGOS & ABUJA
             </div>
 
@@ -35,12 +34,6 @@ export default function HeroSection() {
                 </svg>
                 <span className="text-gray-700 dark:text-gray-300">Verified Artists</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700 dark:text-gray-300">Escrow Payments</span>
-              </div>
             </div>
 
             {/* CTA Buttons */}
@@ -62,23 +55,23 @@ export default function HeroSection() {
             )}
           </div>
 
-          {/* Right Side - Visual Element */}
+          {/* Right Side - Visual Element: semi-transparent dark green card with glow */}
           <div className="hidden lg:block">
             <div className="relative">
-              <div className="bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-300 dark:border-gray-700">
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-6">
+              <div className="bg-emerald-900/40 dark:bg-emerald-900/50 backdrop-blur-sm rounded-2xl p-6 border border-emerald-600/30 dark:border-emerald-600/40 shadow-xl shadow-emerald-900/20 ring-2 ring-emerald-500/20">
+                <div className="bg-emerald-800/60 dark:bg-emerald-800/70 rounded-xl p-6 border border-emerald-600/30">
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="w-16 h-16 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold text-xl">
                       M
                     </div>
                     <div>
                       <div className="text-white font-semibold">Musician Profile</div>
-                      <div className="text-gray-400 text-sm">Ready to perform</div>
+                      <div className="text-emerald-200/80 text-sm">Ready to perform</div>
                     </div>
                   </div>
                   <div className="space-y-2 mb-4">
-                    <div className="h-2 bg-gray-600 rounded w-3/4"></div>
-                    <div className="h-2 bg-gray-600 rounded w-1/2"></div>
+                    <div className="h-2 bg-emerald-600/60 rounded w-3/4"></div>
+                    <div className="h-2 bg-emerald-600/60 rounded w-1/2"></div>
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex space-x-1">
@@ -86,11 +79,14 @@ export default function HeroSection() {
                       <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
                       <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
                     </div>
-                    <div className="text-teal-400 text-sm">Rating: 4.8</div>
+                    <div className="text-teal-300 text-sm">Rating: 4.8</div>
                   </div>
-                  <button className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-lg font-semibold transition-colors">
+                  <Link
+                    to="/register"
+                    className="block w-full text-center bg-teal-500 hover:bg-teal-400 text-white py-3 rounded-lg font-semibold transition-colors shadow-lg shadow-teal-900/30"
+                  >
                     Book Now
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

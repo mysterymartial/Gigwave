@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useBankAccounts, useAddBankAccount, useSetDefaultBankAccount, useDeleteBankAccount } from '../../hooks/useBankAccounts';
 import { usePaymentBanks } from '../../hooks/usePayments';
 
@@ -14,6 +14,11 @@ export default function BankAccountsPage() {
   const [accountNumber, setAccountNumber] = useState('');
   const [accountName, setAccountName] = useState('');
   const [isPayoutDefault, setIsPayoutDefault] = useState(false);
+
+  const hasNoAccounts = !bankAccounts || bankAccounts.length === 0;
+  useEffect(() => {
+    if (!isLoading && hasNoAccounts) setShowForm(true);
+  }, [isLoading, hasNoAccounts]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,9 +42,14 @@ export default function BankAccountsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      {hasNoAccounts && (
+        <div className="mb-4 p-4 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-700 dark:text-teal-300 dark:bg-teal-500/10 dark:border-teal-400/30">
+          Add your bank account to continue using GigWave.
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Bank Accounts</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Bank Accounts</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -145,7 +155,7 @@ export default function BankAccountsPage() {
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500">No bank accounts added yet</div>
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">No bank accounts added yet</div>
         )}
       </div>
     </div>

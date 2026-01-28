@@ -1,14 +1,40 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../lib/api';
-import type { AuthResponse, User } from '../types';
+import type { User } from '../types';
+
+function readUserFromStorage(): User | null {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
+    return JSON.parse(userStr) as User;
+  } catch {
+    return null;
+  }
+}
 
 export const useAuth = () => {
-  const userStr = localStorage.getItem('user');
-  const user: User | null = userStr ? JSON.parse(userStr) : null;
+  const [user, setUser] = useState<User | null>(readUserFromStorage);
+
+  useEffect(() => {
+    const sync = () => setUser(readUserFromStorage());
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, []);
+
+  // Re-read user when auth changes (e.g. after login/register in same tab)
+  useEffect(() => {
+    const onAuthChange = () => setUser(readUserFromStorage());
+    window.addEventListener('gigwave-auth-change', onAuthChange);
+    return () => window.removeEventListener('gigwave-auth-change', onAuthChange);
+  }, []);
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const isAuthenticated = !!user && !!token;
 
   return {
     user,
-    isAuthenticated: !!user && !!localStorage.getItem('token'),
+    isAuthenticated,
   };
 };
 

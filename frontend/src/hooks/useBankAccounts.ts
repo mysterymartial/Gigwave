@@ -2,10 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bankAccountApi } from '../lib/api';
 import type { BankAccount } from '../types';
 
-export const useBankAccounts = () => {
+export const useBankAccounts = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['bankAccounts'],
     queryFn: () => bankAccountApi.list(),
+    enabled: options?.enabled !== false,
   });
 };
 

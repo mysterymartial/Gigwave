@@ -39,31 +39,33 @@ export default function AppHeader() {
             <span className="text-2xl font-bold text-gray-900 dark:text-white">GigWave</span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
-              Home
-            </Link>
-            <Link to="/gigs" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
-              Gigs
-            </Link>
-            <Link to="/bookings" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
-              Messages
-            </Link>
-            <Link to="/bank-accounts" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
-              Payments
-            </Link>
-            {user?.role === UserRole.ADMIN && (
-              <>
-                <Link to="/admin/reports" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
-                  Reports
-                </Link>
-                <Link to="/admin/customers" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
-                  Customers
-                </Link>
-              </>
-            )}
-          </nav>
+          {/* Navigation - show when logged in */}
+          {user && (
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                Home
+              </Link>
+              <Link to="/gigs" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                Gigs
+              </Link>
+              <Link to="/bookings" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                Messages
+              </Link>
+              <Link to="/bank-accounts" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                Payments
+              </Link>
+              {user?.role === UserRole.ADMIN && (
+                <>
+                  <Link to="/admin/reports" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                    Reports
+                  </Link>
+                  <Link to="/admin/customers" className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                    Customers
+                  </Link>
+                </>
+              )}
+            </nav>
+          )}
 
           {/* User Profile & Actions */}
           <div className="flex items-center space-x-4">
@@ -84,29 +86,48 @@ export default function AppHeader() {
               )}
             </button>
 
-            {/* Notifications Bell */}
-            <button className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors relative">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </button>
+            {user ? (
+              <>
+                {/* Notifications Bell */}
+                <button className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors relative">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </button>
 
-            {/* User Info */}
-            <div className="flex items-center space-x-3">
-              <div className="text-right hidden sm:block">
-                <div className="text-gray-900 dark:text-white font-medium">{getUserDisplayName()}</div>
-                <div className="text-gray-600 dark:text-gray-400 text-sm">{user?.role === UserRole.EVENT_OWNER ? 'Event Owner' : user?.role === UserRole.MUSICIAN ? 'Musician' : 'Admin'}</div>
+                {/* User Info */}
+                <div className="flex items-center space-x-3">
+                  <div className="text-right hidden sm:block">
+                    <div className="text-gray-900 dark:text-white font-medium">{getUserDisplayName()}</div>
+                    <div className="text-gray-600 dark:text-gray-400 text-sm">{user?.role === UserRole.EVENT_OWNER ? 'Event Owner' : user?.role === UserRole.MUSICIAN ? 'Musician' : 'Admin'}</div>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-semibold">
+                    {getUserDisplayName().charAt(0).toUpperCase()}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors text-sm"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/login"
+                  className="text-gray-700 dark:text-gray-300 hover:text-teal-500 dark:hover:text-teal-400 font-medium transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                >
+                  Register
+                </Link>
               </div>
-              <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-semibold">
-                {getUserDisplayName().charAt(0).toUpperCase()}
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors text-sm"
-              >
-                Logout
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -95,49 +95,38 @@ public class PaymentController {
         ));
     }
 
-    @PostMapping("/webhooks/mandate")
-    public ResponseEntity<Void> handleMandateWebhook(
+    /**
+     * Single OnePipe webhook URL for both mandate and debit notifications.
+     * Configure this URL in the OnePipe dashboard; mandate and debit callbacks use it.
+     */
+    @PostMapping("/webhooks/onepipe")
+    public ResponseEntity<Void> handleOnePipeWebhook(
             @RequestBody String requestBody,
             @RequestHeader(value = "X-OnePipe-Signature") String signature
     ) {
         if (signature == null || signature.isBlank() || !paymentService.verifyWebhookSignature(requestBody, signature)) {
-            return ResponseEntity.status(401).build(); // Unauthorized
+            return ResponseEntity.status(401).build();
         }
-
-        // Parse JSON payload
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             Map<String, Object> payload = mapper.readValue(requestBody, Map.class);
-            
-            String mandateRef = (String) payload.get("mandate_ref");
             String status = (String) payload.get("status");
-            paymentService.handleMandateWebhook(mandateRef, status);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(400).build(); // Bad Request
-        }
-    }
 
-    @PostMapping("/webhooks/debit")
-    public ResponseEntity<Void> handleDebitWebhook(
-            @RequestBody String requestBody,
-            @RequestHeader(value = "X-OnePipe-Signature") String signature
-    ) {
-        if (signature == null || signature.isBlank() || !paymentService.verifyWebhookSignature(requestBody, signature)) {
-            return ResponseEntity.status(401).build(); // Unauthorized
-        }
-
-        // Parse JSON payload
-        try {
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            Map<String, Object> payload = mapper.readValue(requestBody, Map.class);
-            
-            String transactionRef = (String) payload.get("transaction_ref");
-            String status = (String) payload.get("status");
-            paymentService.handleDebitWebhook(transactionRef, status);
-            return ResponseEntity.ok().build();
+            if (payload.containsKey("mandate_ref")) {
+                String mandateRef = (String) payload.get("mandate_ref");
+                paymentService.handleMandateWebhook(mandateRef, status);
+                return ResponseEntity.ok().build();
+            }
+            if (payload.containsKey("transaction_ref")) {
+                String transactionRef = (String) payload.get("transaction_ref");
+                paymentService.handleDebitWebhook(transactionRef, status);
+                return ResponseEntity.ok().build();
+            }
+            log.warn("OnePipe webhook: unknown payload shape");
+            return ResponseEntity.status(400).build();
         } catch (Exception e) {
-            return ResponseEntity.status(400).build(); // Bad Request
+            log.error("OnePipe webhook error", e);
+            return ResponseEntity.status(400).build();
         }
     }
 

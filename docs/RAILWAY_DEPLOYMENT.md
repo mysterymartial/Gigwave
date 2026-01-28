@@ -55,6 +55,9 @@ ONEPIPE_BASE_URL=https://api.onepipe.io/v2/transact
 ONEPIPE_ENV=production
 ONEPIPE_BILLER_CODE=
 
+# Server base URL (for OnePipe/Flutterwave webhook callbacks)
+SERVER_URL=https://gigwave-production.up.railway.app
+
 # CORS (set your frontend domain)
 CORS_ORIGINS=https://your-frontend-domain.com,https://www.your-frontend-domain.com
 
@@ -131,20 +134,42 @@ PLATFORM_ACCOUNT_NAME=Agbaosi Bolarinwa Minasu
 2. Railway will automatically create a MongoDB instance
 3. The connection string will be available as `MONGO_URL` (you may need to map it to `MONGODB_URI`)
 
+### Frontend calling the deployed backend
+
+For production builds, the frontend must call the deployed API. Set **`VITE_API_BASE_URL`** (no trailing slash) at **build time**:
+
+```bash
+VITE_API_BASE_URL=https://gigwave-production.up.railway.app
+```
+
+- **Local dev**: Omit it; Vite proxies `/api` to `http://localhost:8080`.
+- **Production**: Set it in your frontend host (e.g. Vercel/Netlify/Railway env vars), then rebuild. The app will use `https://gigwave-production.up.railway.app/api` for all API requests.
+
+See `frontend/.env.example`.
+
 ### CORS Configuration
 
-**Critical**: Update `CORS_ORIGINS` with your actual frontend domain(s):
+**Critical**: Update `CORS_ORIGINS` in the **backend** Railway Variables with your actual frontend domain(s):
 - For development: `http://localhost:3000,http://localhost:5173`
-- For production: `https://yourdomain.com,https://www.yourdomain.com`
+- For production: `https://your-frontend-domain.com,https://www.your-frontend-domain.com`
 
-### Webhook URLs
+### Webhook URLs (for OnePipe & Flutterwave)
 
-If you're using OnePipe webhooks, update your OnePipe dashboard with:
-```
-https://your-app-name.up.railway.app/api/payments/webhooks/mandate
-https://your-app-name.up.railway.app/api/payments/webhooks/debit
-https://your-app-name.up.railway.app/api/payments/webhooks/payout
-```
+**Backend base:** `https://gigwave-production.up.railway.app`
+
+Set this **single** webhook URL in your OnePipe dashboard (mandate + debit both use it):
+
+| Purpose | URL |
+|--------|-----|
+| **OnePipe (mandate + debit)** | `https://gigwave-production.up.railway.app/api/payments/webhooks/onepipe` |
+
+Set **Flutterwave** webhook URL in the Flutterwave dashboard (for payout/transfer notifications):
+
+| Purpose | URL |
+|--------|-----|
+| **Payout / transfer** | `https://gigwave-production.up.railway.app/api/payments/webhooks/payout` |
+
+Ensure Railway **Variables** includes `SERVER_URL=https://gigwave-production.up.railway.app` so the backend uses this base when registering callbacks with OnePipe/Flutterwave.
 
 ### Custom Domain (Optional)
 

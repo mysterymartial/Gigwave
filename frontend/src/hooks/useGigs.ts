@@ -2,10 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { gigApi } from '../lib/api';
 import type { Gig } from '../types';
 
-export const useListGigs = (filters?: { city?: string; minBudget?: number; maxBudget?: number }) => {
+export const useListGigs = (
+  filters?: { city?: string; minBudget?: number; maxBudget?: number },
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: ['gigs', filters],
     queryFn: () => gigApi.list(filters),
+    enabled: options?.enabled !== false,
   });
 };
 

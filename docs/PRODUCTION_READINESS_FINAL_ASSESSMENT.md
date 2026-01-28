@@ -116,11 +116,11 @@ public void sendBookingAcceptedNotification(...) {
 ### Missing Implementation:
 
 #### 1. Frontend `.env` File
-**Required**:
+**Required**: Copy `frontend/.env.example` to `frontend/.env` and set:
 ```env
-VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+VITE_GOOGLE_MAPS_API_KEY=<your-key-from-google-console>
 ```
-Get key from Google Cloud Console (Maps JavaScript API). Never commit real keys.
+Get key from Google Cloud Console (Maps JavaScript API). **Never put real keys in docs or commit `.env`.**
 
 **Status**: ❌ File doesn't exist in `frontend/.env`
 

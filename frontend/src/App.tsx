@@ -29,34 +29,27 @@ function PrivateRoute({ children }: { children: ReactNode }) {
 function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Layout />
-              </PrivateRoute>
-            }
-          >
-          <Route index element={<HomePage />} />
-          <Route path="gigs" element={<GigListPage />} />
-          <Route path="gigs/:id" element={<GigDetailsPage />} />
-          <Route path="gigs/create" element={<CreateGigPage />} />
-          <Route path="my-gigs" element={<MyGigsPage />} />
-          <Route path="bookings/:id" element={<BookingDetailsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="bank-accounts" element={<BankAccountsPage />} />
-          <Route path="bookings/:bookingId/chat" element={<ChatPage />} />
-          <Route path="bookings/:bookingId/reviews" element={<ReviewsPage />} />
-          <Route path="bookings/:bookingId/disputes" element={<DisputesPage />} />
-          <Route path="kyc" element={<KycPage />} />
-          <Route path="reports/new" element={<AccountReportPage />} />
-          <Route path="admin/reports" element={<AdminReportsPage />} />
-          <Route path="admin/customers" element={<AdminCustomersPage />} />
-        </Route>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="gigs" element={<PrivateRoute><GigListPage /></PrivateRoute>} />
+            <Route path="gigs/:id" element={<PrivateRoute><GigDetailsPage /></PrivateRoute>} />
+            <Route path="gigs/create" element={<PrivateRoute><CreateGigPage /></PrivateRoute>} />
+            <Route path="my-gigs" element={<PrivateRoute><MyGigsPage /></PrivateRoute>} />
+            <Route path="bookings/:id" element={<PrivateRoute><BookingDetailsPage /></PrivateRoute>} />
+            <Route path="profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+            <Route path="bank-accounts" element={<PrivateRoute><BankAccountsPage /></PrivateRoute>} />
+            <Route path="bookings/:bookingId/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+            <Route path="bookings/:bookingId/reviews" element={<PrivateRoute><ReviewsPage /></PrivateRoute>} />
+            <Route path="bookings/:bookingId/disputes" element={<PrivateRoute><DisputesPage /></PrivateRoute>} />
+            <Route path="kyc" element={<PrivateRoute><KycPage /></PrivateRoute>} />
+            <Route path="reports/new" element={<PrivateRoute><AccountReportPage /></PrivateRoute>} />
+            <Route path="admin/reports" element={<PrivateRoute><AdminReportsPage /></PrivateRoute>} />
+            <Route path="admin/customers" element={<PrivateRoute><AdminCustomersPage /></PrivateRoute>} />
+          </Route>
       </Routes>
     </BrowserRouter>
     </ErrorBoundary>
