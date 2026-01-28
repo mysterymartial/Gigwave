@@ -20,41 +20,41 @@ OnePipe API is integrated via `OnePipeClient` interface with implementation `One
 
 **Purpose:** Create direct debit mandate for user bank account authorization.
 
-**OnePipe Request Type:** `setup_mandate`
+**OnePipe Request Type:** `create mandate` (OnePipe v2)
 
-**Request Structure:**
+**Request Structure (aligned with OnePipe v2 docs):**
 ```json
 {
   "request_ref": "REQ_timestamp",
-  "request_type": "setup_mandate",
+  "request_type": "create mandate",
   "auth": {
     "type": "bank.account",
-    "secure": "account_number",
-    "auth_provider": "sandbox|production"
+    "secure": "TripleDES.encrypt(accountNumber;bankCBNCode, ONEPIPE_SECRET_KEY)",
+    "auth_provider": "PaywithAccount"
   },
   "transaction": {
-    "mock_mode": "live",
+    "mock_mode": "Inspect",
     "transaction_ref": "TXN_timestamp",
-    "transaction_desc": "Direct debit mandate setup",
-    "amount": 2000000,
-    "customer": {
-      "customer_ref": "user_uuid",
-      "firstname": "John",
-      "surname": "Doe",
-      "email": "user@example.com",
-      "mobile_no": "08123456789"
-    },
-    "details": {
-      "destination_account": "0123456789",
-      "destination_bank_code": "058",
-      "max_amount": 2000000
-    },
+    "transaction_desc": "Creating a mandate",
+    "transaction_ref_parent": null,
+    "amount": 0,
+    "customer": { "customer_ref": "...", "firstname": "...", "surname": "...", "email": "...", "mobile_no": "..." },
     "meta": {
-      "callback_url": "http://localhost:8080/api/payments/webhooks/mandate"
-    }
+      "amount": "2000000",
+      "skip_consent": "true",
+      "bvn": "TripleDES.encrypt(BVN, ONEPIPE_SECRET_KEY)",
+      "biller_code": "000019",
+      "customer_consent": "http://localhost:8080/api/payments/webhooks/mandate",
+      "activation_method": "transfer"
+    },
+    "details": {}
   }
 }
 ```
+
+**Encryption:** `auth.secure` and `meta.bvn` (when provided) use TripleDES (DESede/ECB/PKCS5Padding) with `ONEPIPE_SECRET_KEY`. See `OnePipeTripleDesUtil`.
+
+**OnePipe v2:** `auth_provider` = `PaywithAccount`, `meta` holds `amount` (kobo), `skip_consent`, `bvn` (encrypted, optional), `biller_code`, `customer_consent` (callback URL), and **`activation_method`: `"transfer"`** (NIBSS ₦50 transfer activation). `details` = `{}`.
 
 **Where It's Used:**
 - `PaymentService.setupMandateForOrganizer()` - Called when organizer sets up payment mandate
@@ -64,8 +64,8 @@ OnePipe API is integrated via `OnePipeClient` interface with implementation `One
 
 **Business Flow:**
 1. User adds bank account via `BankAccountController`
-2. User calls mandate setup endpoint with `bankAccountId` and `maxAmount`
-3. `PaymentService` fetches bank account details and user information
+2. User calls mandate setup endpoint with `bankAccountId`, `maxAmount`, and optionally `bvn`
+3. `PaymentService` fetches bank account details, user (email, phone), and builds `MandateRequest`
 4. Creates `MandateRequest` with account details, user info, and callback URL
 5. Calls `onePipeClient.setupMandate(request)`
 6. OnePipe returns `mandateRef` and `authorizationUrl`
@@ -82,37 +82,32 @@ OnePipe API is integrated via `OnePipeClient` interface with implementation `One
 
 **Purpose:** Debit money from organizer's bank account using mandate reference.
 
-**OnePipe Request Type:** `collect`
+**OnePipe Request Type:** `collect` (OnePipe v2)
 
-**Request Structure:**
+**Request Structure (aligned with OnePipe v2 docs):**
 ```json
 {
   "request_ref": "REQ_timestamp",
   "request_type": "collect",
   "auth": {
     "type": "bank.account",
-    "secure": "mandate_reference",
-    "auth_provider": "sandbox|production"
+    "secure": "TripleDES.encrypt(accountNumber;bankCBNCode, ONEPIPE_SECRET_KEY)",
+    "auth_provider": "NIBSS"
   },
   "transaction": {
-    "mock_mode": "live",
+    "mock_mode": "Inspect",
     "transaction_ref": "TXN_timestamp",
     "transaction_desc": "Payment for gig booking",
+    "transaction_ref_parent": null,
     "amount": 2020000,
-    "customer": {
-      "customer_ref": "user_uuid",
-      "firstname": "John",
-      "surname": "Doe",
-      "email": "user@example.com",
-      "mobile_no": "08123456789"
-    },
-    "details": null,
-    "meta": {
-      "callback_url": "http://localhost:8080/api/payments/webhooks/debit"
-    }
+    "customer": { "customer_ref": "...", "firstname": "...", "surname": "...", "email": "...", "mobile_no": "..." },
+    "meta": { "biller_code": "000019" },
+    "details": {}
   }
 }
 ```
+
+**Encryption:** `auth.secure` = TripleDES of `accountNumber;bankCode` (organizer's account) using `ONEPIPE_SECRET_KEY`. **Collect auth provider:** `auth_provider: "NIBSS"` (mandate created with `activation_method: "transfer"`). `meta` = `biller_code` only; `details` = `{}`.
 
 **Amount Calculation:** `totalAmount = acceptedAmount + platformFeeAmount` (e.g., ₦20,000 + ₦200 = ₦20,200 = 2,020,000 kobo)
 
@@ -205,24 +200,17 @@ OnePipe API is integrated via `OnePipeClient` interface with implementation `One
 4. Calls `transferClient.initiateTransfer(musicianTransferRequest)`
 5. System stores `Payout` entity with status `PENDING`
 
-**Platform Fee Transfer Flow:**
-1. After musician transfer, system creates second transfer request
-2. Uses platform account details: `0121753572` (Sterling Bank - 232), name: `Agbaosi Bolarinwa Minasu`
-3. Amount is ₦200
-4. Uses platform email `platform@gigwave.com` and phone `09010849782`
-5. Calls `transferClient.initiateTransfer(platformFeeTransferRequest)`
-6. System stores second `Payout` entity for platform fee
+**Platform / Settlement:**
+- Settlement and platform account details come from env (`PLATFORM_SETTLEMENT_*`, `PLATFORM_ACCOUNT_*`). No defaults in production.
+- Platform fee remains in settlement; single transfer goes to musician.
 
 **Business Flow:**
 1. Organizer confirms payment → Debit initiated (OnePipe)
 2. Debit succeeds → Webhook received
 3. `PaymentService.createPayoutOnDebitSuccess()` called
-4. Two transfers created simultaneously:
-   - Musician: Full `acceptedAmount` (e.g., ₦20,000)
-   - GigWave: Platform fee (₦200)
-5. Both transfers sent to Flutterwave
-6. Flutterwave processes transfers and sends webhooks
-7. System updates payout statuses based on webhook responses
+4. Single transfer to musician: `acceptedAmount - Flutterwave charge`; platform fee stays in settlement
+5. Flutterwave processes transfer and sends webhooks
+6. System updates payout status from webhook
 
 **Response:** Returns `TransferResponse` with `status`, `transactionRef`, `message`, and `provider`
 

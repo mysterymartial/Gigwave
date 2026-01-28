@@ -20,4 +20,6 @@ public class MandateRequest {
     private java.util.UUID userId;
     private String email;
     private String phone;
+    /** BVN for create mandate meta (OnePipe v2); optional. When present, sent encrypted. */
+    private String bvn;
 }

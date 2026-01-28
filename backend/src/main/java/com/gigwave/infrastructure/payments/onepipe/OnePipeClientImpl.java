@@ -1,5 +1,6 @@
 package com.gigwave.infrastructure.payments.onepipe;
 
+import com.gigwave.infrastructure.payments.onepipe.OnePipeClient;
 import com.gigwave.infrastructure.payments.onepipe.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,13 +9,10 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,41 +34,41 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.environment}")
     private String environment;
 
+    @Value("${onepipe.biller-code:}")
+    private String billerCode;
+
     @Override
     public MandateResponse setupMandate(MandateRequest request) {
         log.info("Setting up mandate for account: {}", request.getAccountNumber());
-        
-        // OnePipe API structure following OnePipe PWA documentation
+
         String requestRef = "REQ_" + System.currentTimeMillis();
         String transactionRef = "TXN_" + System.currentTimeMillis();
-        
-        // Parse account name to extract firstname and surname
+
         String[] nameParts = parseName(request.getAccountName());
         String firstname = nameParts[0];
         String surname = nameParts.length > 1 ? nameParts[1] : "";
-        
-        // Convert max amount to kobo (1 Naira = 100 kobo)
+
         long maxAmountKobo = request.getMaxAmount().multiply(new java.math.BigDecimal("100")).longValue();
-        
+        String securePlain = request.getAccountNumber() + ";" + request.getBankCode();
+        String secureEncrypted = encryptSecure(securePlain);
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("request_ref", requestRef);
-        payload.put("request_type", "setup_mandate");
-        
-        // Auth object for mandate setup
+        payload.put("request_type", "create mandate");
+
         Map<String, Object> auth = new HashMap<>();
         auth.put("type", "bank.account");
-        auth.put("secure", request.getAccountNumber()); // Account number for mandate setup
-        auth.put("auth_provider", environment); // Use environment as provider
+        auth.put("secure", secureEncrypted);
+        auth.put("auth_provider", "PaywithAccount");
         payload.put("auth", auth);
-        
-        // Transaction object
+
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", "live");
+        transaction.put("mock_mode", "Inspect");
         transaction.put("transaction_ref", transactionRef);
-        transaction.put("transaction_desc", "Direct debit mandate setup");
-        transaction.put("amount", maxAmountKobo);
-        
-        // Customer object
+        transaction.put("transaction_desc", "Creating a mandate");
+        transaction.put("transaction_ref_parent", null);
+        transaction.put("amount", 0);
+
         Map<String, Object> customer = new HashMap<>();
         customer.put("customer_ref", request.getUserId() != null ? request.getUserId().toString() : "");
         customer.put("firstname", firstname);
@@ -78,68 +76,74 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("email", request.getEmail() != null ? request.getEmail() : "");
         customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
         transaction.put("customer", customer);
-        
-        // Meta object (optional)
+
         Map<String, Object> meta = new HashMap<>();
-        meta.put("callback_url", request.getCallbackUrl());
+        meta.put("amount", String.valueOf(maxAmountKobo));
+        meta.put("skip_consent", "true");
+        if (request.getBvn() != null && !request.getBvn().isBlank()) {
+            meta.put("bvn", encryptSecure(request.getBvn()));
+        }
+        if (billerCode != null && !billerCode.isBlank()) {
+            meta.put("biller_code", billerCode);
+        }
+        meta.put("customer_consent", request.getCallbackUrl() != null ? request.getCallbackUrl() : "");
+        meta.put("activation_method", "transfer");
         transaction.put("meta", meta);
-        
-        // Details object for mandate setup
-        Map<String, Object> details = new HashMap<>();
-        details.put("destination_account", request.getAccountNumber());
-        details.put("destination_bank_code", request.getBankCode());
-        details.put("max_amount", maxAmountKobo);
-        transaction.put("details", details);
-        
+
+        transaction.put("details", new HashMap<String, Object>());
         payload.put("transaction", transaction);
 
-        HttpHeaders headers = createHeaders();
+        HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    entity,
-                    Map.class
-            );
-
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, Map.class);
             Map<String, Object> body = response.getBody();
             if (body != null) {
-                // Check for errors
                 Object errors = body.get("errors");
                 if (errors != null) {
-                    String errorMessage = "OnePipe API error";
-                    if (errors instanceof java.util.List && !((java.util.List<?>) errors).isEmpty()) {
-                        Object firstError = ((java.util.List<?>) errors).get(0);
-                        if (firstError instanceof Map) {
-                            Object msg = ((Map<?, ?>) firstError).get("message");
-                            errorMessage = msg != null ? msg.toString() : errorMessage;
-                        }
-                    }
-                    log.error("OnePipe mandate setup error: {}", errorMessage);
+                    String errorMessage = extractErrorMessage(errors);
+                    log.error("OnePipe create mandate error: {}", errorMessage);
                     throw new RuntimeException("OnePipe mandate setup failed: " + errorMessage);
                 }
-                
-                Map<String, Object> transactionResponse = (Map<String, Object>) body.getOrDefault("transaction", new HashMap<>());
+                Map<String, Object> tx = (Map<String, Object>) body.getOrDefault("transaction", new HashMap<>());
                 return MandateResponse.builder()
                         .status((String) body.getOrDefault("status", "pending"))
-                        .mandateRef((String) transactionResponse.getOrDefault("mandate_ref", ""))
-                        .authorizationUrl((String) transactionResponse.getOrDefault("authorization_url", ""))
+                        .mandateRef((String) tx.getOrDefault("mandate_ref", ""))
+                        .authorizationUrl((String) tx.getOrDefault("authorization_url", ""))
                         .message((String) body.getOrDefault("message", ""))
                         .build();
             }
         } catch (RuntimeException e) {
-            throw e; // Re-throw our custom exceptions
+            throw e;
         } catch (Exception e) {
             log.error("Error setting up mandate", e);
             throw new RuntimeException("Failed to setup mandate: " + e.getMessage(), e);
         }
-
-        // Should not reach here if real API is configured
         throw new RuntimeException("OnePipe API not properly configured or unavailable");
     }
-    
+
+    private String encryptSecure(String plaintext) {
+        try {
+            return OnePipeTripleDesUtil.encrypt(plaintext, secretKey);
+        } catch (GeneralSecurityException e) {
+            log.error("TripleDES encryption failed", e);
+            throw new RuntimeException("OnePipe encryption failed: " + e.getMessage(), e);
+        }
+    }
+
+    private String extractErrorMessage(Object errors) {
+        if (!(errors instanceof java.util.List) || ((java.util.List<?>) errors).isEmpty()) {
+            return "OnePipe API error";
+        }
+        Object first = ((java.util.List<?>) errors).get(0);
+        if (first instanceof Map) {
+            Object msg = ((Map<?, ?>) first).get("message");
+            return msg != null ? msg.toString() : "OnePipe API error";
+        }
+        return "OnePipe API error";
+    }
+
     private String[] parseName(String fullName) {
         if (fullName == null || fullName.trim().isEmpty()) {
             return new String[]{"", ""};
@@ -152,37 +156,39 @@ public class OnePipeClientImpl implements OnePipeClient {
     public DebitResponse initiateDebit(DebitRequest request) {
         log.info("Initiating collect (debit) for mandate: {}", request.getMandateRef());
 
-        // OnePipe API structure following OnePipe PWA documentation
+        if (request.getAccountNumber() == null || request.getBankCode() == null) {
+            throw new IllegalArgumentException("Collect requires accountNumber and bankCode for OnePipe auth.secure encryption");
+        }
+
         String requestRef = "REQ_" + System.currentTimeMillis();
         String transactionRef = "TXN_" + System.currentTimeMillis();
-        
-        // Parse account name to extract firstname and surname
+
         String[] nameParts = parseName(request.getAccountName());
         String firstname = nameParts[0];
         String surname = nameParts.length > 1 ? nameParts[1] : "";
-        
-        // Convert amount to kobo (1 Naira = 100 kobo)
+
         long amountKobo = request.getAmount().multiply(new java.math.BigDecimal("100")).longValue();
-        
+
+        String securePlain = request.getAccountNumber() + ";" + request.getBankCode();
+        String secureEncrypted = encryptSecure(securePlain);
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("request_ref", requestRef);
         payload.put("request_type", "collect");
-        
-        // Auth object for collect (using mandate reference)
+
         Map<String, Object> auth = new HashMap<>();
         auth.put("type", "bank.account");
-        auth.put("secure", request.getMandateRef()); // Mandate reference for collect
-        auth.put("auth_provider", environment);
+        auth.put("secure", secureEncrypted);
+        auth.put("auth_provider", "NIBSS");
         payload.put("auth", auth);
-        
-        // Transaction object
+
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", "live");
+        transaction.put("mock_mode", "Inspect");
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", request.getNarration());
+        transaction.put("transaction_ref_parent", null);
         transaction.put("amount", amountKobo);
-        
-        // Customer object
+
         Map<String, Object> customer = new HashMap<>();
         customer.put("customer_ref", request.getUserId() != null ? request.getUserId().toString() : "");
         customer.put("firstname", firstname);
@@ -190,69 +196,47 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("email", request.getEmail() != null ? request.getEmail() : "");
         customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
         transaction.put("customer", customer);
-        
-        // Meta object (optional)
+
         Map<String, Object> meta = new HashMap<>();
-        meta.put("callback_url", request.getCallbackUrl());
+        if (billerCode != null && !billerCode.isBlank()) {
+            meta.put("biller_code", billerCode);
+        }
         transaction.put("meta", meta);
-        
-        // Details set to null for collect requests
-        transaction.put("details", null);
-        
+
+        transaction.put("details", new HashMap<String, Object>());
         payload.put("transaction", transaction);
 
-        HttpHeaders headers = createHeaders();
+        HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    entity,
-                    Map.class
-            );
-
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, Map.class);
             Map<String, Object> body = response.getBody();
             if (body != null) {
-                String status = (String) body.getOrDefault("status", "pending");
-                Map<String, Object> transactionResponse = (Map<String, Object>) body.getOrDefault("transaction", new HashMap<>());
-                
-                DebitResponse.DebitResponseBuilder responseBuilder = DebitResponse.builder()
-                        .status(status)
-                        .transactionRef((String) transactionResponse.getOrDefault("transaction_ref", transactionRef))
-                        .message((String) body.getOrDefault("message", ""));
-                
-                // Handle WaitingForOTP status
-                if ("WaitingForOTP".equalsIgnoreCase(status) || "waiting_for_otp".equalsIgnoreCase(status)) {
-                    responseBuilder.otpReference((String) transactionResponse.getOrDefault("otp_reference", transactionRef));
-                    responseBuilder.validationUrl(baseUrl + "/validate");
-                }
-                
-                // Check for errors
                 Object errors = body.get("errors");
                 if (errors != null) {
-                    String errorMessage = "OnePipe API error";
-                    if (errors instanceof java.util.List && !((java.util.List<?>) errors).isEmpty()) {
-                        Object firstError = ((java.util.List<?>) errors).get(0);
-                        if (firstError instanceof Map) {
-                            Object msg = ((Map<?, ?>) firstError).get("message");
-                            errorMessage = msg != null ? msg.toString() : errorMessage;
-                        }
-                    }
+                    String errorMessage = extractErrorMessage(errors);
                     log.error("OnePipe collect error: {}", errorMessage);
                     throw new RuntimeException("OnePipe collect failed: " + errorMessage);
                 }
-                
-                return responseBuilder.build();
+                String status = (String) body.getOrDefault("status", "pending");
+                Map<String, Object> tx = (Map<String, Object>) body.getOrDefault("transaction", new HashMap<>());
+                DebitResponse.DebitResponseBuilder rb = DebitResponse.builder()
+                        .status(status)
+                        .transactionRef((String) tx.getOrDefault("transaction_ref", transactionRef))
+                        .message((String) body.getOrDefault("message", ""));
+                if ("WaitingForOTP".equalsIgnoreCase(status) || "waiting_for_otp".equalsIgnoreCase(status)) {
+                    rb.otpReference((String) tx.getOrDefault("otp_reference", transactionRef));
+                    rb.validationUrl(baseUrl + "/validate");
+                }
+                return rb.build();
             }
         } catch (RuntimeException e) {
-            throw e; // Re-throw our custom exceptions
+            throw e;
         } catch (Exception e) {
             log.error("Error initiating collect (debit)", e);
             throw new RuntimeException("Failed to initiate collect: " + e.getMessage(), e);
         }
-
-        // Should not reach here if real API is configured
         throw new RuntimeException("OnePipe API not properly configured or unavailable");
     }
 
@@ -263,7 +247,7 @@ public class OnePipeClientImpl implements OnePipeClient {
     public BankListResponse getSupportedBanks() {
         log.info("Fetching supported banks");
 
-        HttpHeaders headers = createHeaders();
+        HttpHeaders headers = createHeaders(null);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         try {
@@ -331,7 +315,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         transaction.put("otp", otp);
         payload.put("transaction", transaction);
         
-        HttpHeaders headers = createHeaders();
+        HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
         
         try {
@@ -362,51 +346,46 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Override
     public boolean verifyWebhookSignature(String payload, String signature) {
         try {
-            // OnePipe webhook signature verification
-            // Typically uses HMAC-SHA256 with secret key
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            mac.init(secretKeySpec);
-            byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
-            String computedSignature = Base64.getEncoder().encodeToString(hash);
-            
-            // Use constant-time comparison to prevent timing attacks
-            return java.security.MessageDigest.isEqual(
-                    computedSignature.getBytes(StandardCharsets.UTF_8),
-                    signature.getBytes(StandardCharsets.UTF_8)
-            );
+            // OnePipe webhook verification: MD5(secret + payload) as hex, per docs
+            String computed = md5Hex(secretKey + payload);
+            String received = (signature != null ? signature.trim() : "").toLowerCase();
+            // Constant-time comparison to prevent timing attacks
+            return !received.isEmpty()
+                    && java.security.MessageDigest.isEqual(
+                            computed.getBytes(StandardCharsets.UTF_8),
+                            received.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("Error verifying webhook signature", e);
             return false;
         }
     }
 
-    private HttpHeaders createHeaders() {
+    private HttpHeaders createHeaders(String requestRef) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        
-        // OnePipe API uses Authorization Bearer and Signature headers
         headers.set("Authorization", "Bearer " + apiKey);
-        
-        // Generate signature (OnePipe requires HMAC signature)
-        String timestamp = String.valueOf(Instant.now().getEpochSecond());
-        
-        try {
-            String signature = generateSignature(timestamp);
-            headers.set("Signature", signature);
-        } catch (Exception e) {
-            log.error("Error generating signature", e);
+
+        // Signature: MD5(request_ref;client_secret) per OnePipe docs
+        if (requestRef != null && !requestRef.isBlank()) {
+            try {
+                String signature = md5Hex(requestRef + ";" + secretKey);
+                headers.set("Signature", signature);
+            } catch (Exception e) {
+                log.error("Error generating signature", e);
+            }
         }
 
         return headers;
     }
 
-    private String generateSignature(String timestamp) throws NoSuchAlgorithmException, InvalidKeyException {
-        String message = apiKey + timestamp;
-        Mac mac = Mac.getInstance("HmacSHA256");
-        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-        mac.init(secretKeySpec);
-        byte[] hash = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(hash);
+    /** MD5 hash of message as 32-char lowercase hex. Used for request Signature header and webhook verification. */
+    private String md5Hex(String message) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] digest = md.digest(message.getBytes(StandardCharsets.UTF_8));
+        StringBuilder hex = new StringBuilder(digest.length * 2);
+        for (byte b : digest) {
+            hex.append(String.format("%02x", b & 0xff));
+        }
+        return hex.toString();
     }
 }

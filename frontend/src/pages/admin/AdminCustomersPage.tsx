@@ -176,7 +176,7 @@ export default function AdminCustomersPage() {
               </div>
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-md p-3">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>Note:</strong> Money will be debited from the customer's account and sent to the settlement account (Fidelity 6977519876).
+                  <strong>Note:</strong> Money will be debited from the customer's account and sent to the configured settlement account.
                 </p>
               </div>
               <div className="flex space-x-3">

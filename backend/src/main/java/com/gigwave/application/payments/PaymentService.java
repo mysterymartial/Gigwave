@@ -1,8 +1,8 @@
 package com.gigwave.application.payments;
 
 import com.gigwave.domain.bookings.Booking;
-import com.gigwave.infrastructure.persistence.bookings.BookingRepository;
 import com.gigwave.domain.bookings.PaymentStatus;
+import com.gigwave.infrastructure.persistence.bookings.BookingRepository;
 import com.gigwave.domain.gigs.Gig;
 import com.gigwave.infrastructure.persistence.gigs.GigRepository;
 import com.gigwave.domain.payments.*;
@@ -54,20 +54,20 @@ public class PaymentService {
     @Value("${platform.fee.amount:200}")
     private BigDecimal platformFeeAmount;
 
-    @Value("${platform.settlement.number:6977519876}")
+    @Value("${platform.settlement.number}")
     private String settlementAccountNumber;
 
-    @Value("${platform.settlement.bank-code:070}")
+    @Value("${platform.settlement.bank-code}")
     private String settlementBankCode;
 
-    @Value("${platform.settlement.name:Agbaosi Bolarinwa Minasu}")
+    @Value("${platform.settlement.name}")
     private String settlementAccountName;
 
     @Value("${flutterwave.transfer.charge:10}")
     private BigDecimal flutterwaveCharge;
 
     @Transactional
-    public MandateResponse setupMandateForOrganizer(UUID userId, UUID bankAccountId, BigDecimal maxAmount) {
+    public MandateResponse setupMandateForOrganizer(UUID userId, UUID bankAccountId, BigDecimal maxAmount, String bvn) {
         BankAccount bankAccount = bankAccountRepository.findById(bankAccountId)
                 .orElseThrow(() -> new IllegalArgumentException("Bank account not found"));
 
@@ -75,12 +75,18 @@ public class PaymentService {
             throw new IllegalArgumentException("Bank account does not belong to user");
         }
 
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         MandateRequest request = MandateRequest.builder()
                 .accountNumber(bankAccount.getAccountNumber())
                 .bankCode(bankAccount.getBankCode())
                 .accountName(bankAccount.getAccountName())
                 .maxAmount(maxAmount)
                 .callbackUrl(serverUrl + "/api/payments/webhooks/mandate")
+                .userId(userId)
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .bvn(bvn)
                 .build();
 
         MandateResponse response = onePipeClient.setupMandate(request);
@@ -99,7 +105,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public MandateResponse setupMandateForMusician(UUID userId, UUID bankAccountId, BigDecimal maxAmount) {
+    public MandateResponse setupMandateForMusician(UUID userId, UUID bankAccountId, BigDecimal maxAmount, String bvn) {
         BankAccount bankAccount = bankAccountRepository.findById(bankAccountId)
                 .orElseThrow(() -> new IllegalArgumentException("Bank account not found"));
 
@@ -107,12 +113,18 @@ public class PaymentService {
             throw new IllegalArgumentException("Bank account does not belong to user");
         }
 
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         MandateRequest request = MandateRequest.builder()
                 .accountNumber(bankAccount.getAccountNumber())
                 .bankCode(bankAccount.getBankCode())
                 .accountName(bankAccount.getAccountName())
                 .maxAmount(maxAmount)
                 .callbackUrl(serverUrl + "/api/payments/webhooks/mandate")
+                .userId(userId)
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .bvn(bvn)
                 .build();
 
         MandateResponse response = onePipeClient.setupMandate(request);
@@ -146,15 +158,48 @@ public class PaymentService {
             throw new IllegalStateException("Mandate is not active");
         }
 
+        // Idempotency: already have a debit for this booking (pending or success)?
+        List<DebitTransaction> existing = debitRepository.findByBookingId(bookingId);
+        DebitTransaction existingDebit = existing.stream()
+                .filter(d -> d.getStatus() == DebitStatus.PENDING || d.getStatus() == DebitStatus.SUCCESS)
+                .findFirst()
+                .orElse(null);
+        if (existingDebit != null) {
+            log.info("Debit already exists for booking {} (idempotent skip)", bookingId);
+            return DebitResponse.builder()
+                    .status(existingDebit.getStatus() == DebitStatus.SUCCESS ? "Successful" : "pending")
+                    .transactionRef(existingDebit.getProviderRef())
+                    .message("Already processed")
+                    .build();
+        }
+
+        // Calculate total amount: acceptedAmount + platform fee (200 Naira)
+        // Organizer MUST pay extra 200 - this is enforced by adding platform fee to total
+        BigDecimal totalAmount = booking.getAcceptedAmount().add(platformFeeAmount);
+
+        // Per-debit validation: single debit must not exceed mandate maxAmount
+        if (mandate.getMaxAmount() != null && totalAmount.compareTo(mandate.getMaxAmount()) > 0) {
+            throw new IllegalStateException(
+                    "Debit amount ₦" + totalAmount + " exceeds mandate max amount ₦" + mandate.getMaxAmount());
+        }
+
+        // Cumulative validation: total debited + this debit must not exceed mandate maxAmount
+        if (mandate.getMaxAmount() != null) {
+            BigDecimal totalDebited = debitRepository.findByMandateId(mandate.getId()).stream()
+                    .filter(d -> d.getStatus() == DebitStatus.SUCCESS)
+                    .map(DebitTransaction::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (totalDebited.add(totalAmount).compareTo(mandate.getMaxAmount()) > 0) {
+                throw new IllegalStateException(
+                        "Cumulative debits would exceed mandate limit (debited: ₦" + totalDebited + ", max: ₦" + mandate.getMaxAmount() + ")");
+            }
+        }
+
         // Get organizer user and bank account for customer information
         User organizerUser = userRepository.findById(mandate.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Organizer user not found"));
         BankAccount organizerBankAccount = bankAccountRepository.findById(mandate.getBankAccountId())
                 .orElseThrow(() -> new IllegalArgumentException("Organizer bank account not found"));
-
-        // Calculate total amount: acceptedAmount + platform fee (200 Naira)
-        // Organizer MUST pay extra 200 - this is enforced by adding platform fee to total
-        BigDecimal totalAmount = booking.getAcceptedAmount().add(platformFeeAmount);
 
         DebitRequest request = DebitRequest.builder()
                 .mandateRef(mandate.getMandateRef())
@@ -165,6 +210,8 @@ public class PaymentService {
                 .email(organizerUser.getEmail())
                 .phone(organizerUser.getPhone())
                 .accountName(organizerBankAccount.getAccountName())
+                .accountNumber(organizerBankAccount.getAccountNumber())
+                .bankCode(organizerBankAccount.getBankCode())
                 .build();
 
         DebitResponse response = onePipeClient.initiateDebit(request);
@@ -243,19 +290,24 @@ public class PaymentService {
 
     @Transactional
     public void createPayoutOnDebitSuccess(Booking booking) {
+        // Idempotency: already have a payout for this booking?
+        if (!payoutRepository.findByBookingId(booking.getId()).isEmpty()) {
+            log.info("Payout already exists for booking {} (idempotent skip)", booking.getId());
+            return;
+        }
+
         // SETTLEMENT ACCOUNT FLOW (Settlement account IS Flutterwave account):
-        // 1. Money is debited from organizer (acceptedAmount + ₦200) → Settlement account (6977519876) receives it
+        // 1. Money is debited from organizer (acceptedAmount + platform fee) → Settlement account receives it
         // 2. From settlement account:
         //    - Transfer (acceptedAmount - Flutterwave charge) to musician
-        //    - Flutterwave automatically deducts their charge (₦10-15) from settlement account balance
-        //    - Platform keeps: exactly ₦200 (guaranteed)
+        //    - Flutterwave deducts their charge from settlement account balance
+        //    - Platform keeps the platform fee
         //
         // Calculation:
-        // Settlement receives: acceptedAmount + ₦200
+        // Settlement receives: acceptedAmount + platform fee
         // Transfer to musician: acceptedAmount - Flutterwave charge
-        // Flutterwave charges settlement: Flutterwave charge (for the transfer)
-        // Settlement remaining: (acceptedAmount + ₦200) - (acceptedAmount - Flutterwave charge) - Flutterwave charge = ₦200
-        
+        // Flutterwave charges settlement; remainder in settlement = platform fee
+
         BankAccount payoutAccount = bankAccountRepository
                 .findByUserIdAndIsPayoutDefaultTrue(booking.getMusicianId())
                 .orElseThrow(() -> new IllegalStateException("No default payout account set"));
@@ -264,7 +316,7 @@ public class PaymentService {
                 .orElseThrow(() -> new IllegalArgumentException("Musician user not found"));
 
         // Calculate amount to transfer: acceptedAmount - Flutterwave charge
-        // This ensures exactly ₦200 remains in settlement account after Flutterwave takes their fee
+        // Platform fee remains in settlement account after Flutterwave deducts their charge
         BigDecimal amountToTransfer = booking.getAcceptedAmount().subtract(flutterwaveCharge);
         
         if (amountToTransfer.compareTo(BigDecimal.ZERO) <= 0) {
@@ -277,7 +329,7 @@ public class PaymentService {
                 .bankCode(payoutAccount.getBankCode())
                 .accountName(payoutAccount.getAccountName())
                 .amount(amountToTransfer) // acceptedAmount - Flutterwave charge (to guarantee exactly ₦200 remains)
-                .narration("Gig payment for booking " + booking.getId() + " (from settlement account 6977519876, Flutterwave charge: ₦" + flutterwaveCharge + " deducted)")
+                .narration("Gig payment for booking " + booking.getId() + " (from settlement account, Flutterwave charge: ₦" + flutterwaveCharge + " deducted)")
                 .callbackUrl(serverUrl + "/api/payments/webhooks/payout")
                 .userId(musicianUser.getId())
                 .email(musicianUser.getEmail())
@@ -297,12 +349,9 @@ public class PaymentService {
                 .build();
 
         payoutRepository.save(musicianPayout);
-        
-        // Platform keeps: exactly ₦200 in settlement account
-        // Calculation: (acceptedAmount + ₦200) - (acceptedAmount - Flutterwave charge) - Flutterwave charge = ₦200
-        
-        log.info("Settlement flow initiated for booking {}: Transferring {} to musician (acceptedAmount: {} - Flutterwave charge: {}). Platform keeps exactly ₦{} in settlement account {} after Flutterwave deducts their charge", 
-                booking.getId(), amountToTransfer, booking.getAcceptedAmount(), flutterwaveCharge, platformFeeAmount, settlementAccountNumber);
+
+        log.info("Settlement flow initiated for booking {}: Transferring {} to musician (acceptedAmount: {} - Flutterwave charge: {}). Platform fee ₦{} remains in settlement account",
+                booking.getId(), amountToTransfer, booking.getAcceptedAmount(), flutterwaveCharge, platformFeeAmount);
     }
 
     @Transactional

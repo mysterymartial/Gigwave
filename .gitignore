@@ -14,14 +14,16 @@ Thumbs.db
 
 # Environment variables - NEVER commit these
 .env
-.env.local
-.env.production
+.env.*
 backend/.env
+backend/.env.*
 frontend/.env
-*.env
+frontend/.env.*
+!.env.example
 
 # Build outputs
 node_modules/
+.pnpm-store/
 dist/
 build/
 target/
@@ -32,6 +34,9 @@ target/
 # Uploads
 uploads/
 backend/uploads/
+
+# Local scratch / secrets – never commit
+rubbish.txt
 
 
 

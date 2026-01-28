@@ -1,6 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { paymentApi } from '../lib/api';
-import type { Bank } from '../types';
 
 export const usePaymentBanks = () => {
   return useQuery({
@@ -18,15 +17,39 @@ export const usePlatformFee = () => {
 
 export const useSetupOrganizerMandate = () => {
   return useMutation({
-    mutationFn: ({ bankAccountId, maxAmount }: { bankAccountId: string; maxAmount: number }) =>
-      paymentApi.setupOrganizerMandate(bankAccountId, maxAmount),
+    mutationFn: ({
+      bankAccountId,
+      maxAmount,
+      bvn,
+      idempotencyKey,
+    }: {
+      bankAccountId: string;
+      maxAmount: number;
+      bvn?: string;
+      idempotencyKey?: string;
+    }) => paymentApi.setupOrganizerMandate(bankAccountId, maxAmount, bvn, idempotencyKey),
   });
 };
 
 export const useSetupMusicianMandate = () => {
   return useMutation({
-    mutationFn: ({ bankAccountId, maxAmount }: { bankAccountId: string; maxAmount: number }) =>
-      paymentApi.setupMusicianMandate(bankAccountId, maxAmount),
+    mutationFn: ({
+      bankAccountId,
+      maxAmount,
+      bvn,
+      idempotencyKey,
+    }: {
+      bankAccountId: string;
+      maxAmount: number;
+      bvn?: string;
+      idempotencyKey?: string;
+    }) => paymentApi.setupMusicianMandate(bankAccountId, maxAmount, bvn, idempotencyKey),
+  });
+};
+
+export const useInitiateDebit = () => {
+  return useMutation({
+    mutationFn: (bookingId: string) => paymentApi.initiateDebit(bookingId),
   });
 };
 

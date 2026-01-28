@@ -23,12 +23,18 @@ services:
     container_name: gigwave-backend
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      MONGODB_URI: mongodb://mongodb:27017/gigwave
-      MONGODB_DATABASE: gigwave
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/gigwave}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-gigwave}
       JWT_SECRET: ${JWT_SECRET:-your-256-bit-secret-key-change-in-production-minimum-32-characters}
-      ONEPIPE_API_KEY: ${ONEPIPE_API_KEY}
-      ONEPIPE_SECRET_KEY: ${ONEPIPE_SECRET_KEY}
+      ONEPIPE_API_KEY: ${ONEPIPE_API_KEY:-}
+      ONEPIPE_SECRET_KEY: ${ONEPIPE_SECRET_KEY:-}
       ONEPIPE_BASE_URL: ${ONEPIPE_BASE_URL:-https://api.onepipe.io/v2/transact}
+      ONEPIPE_ENV: ${ONEPIPE_ENV:-sandbox}
+      ONEPIPE_BILLER_CODE: ${ONEPIPE_BILLER_CODE:-}
+      FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-local}
+      IMAGEKIT_PUBLIC_KEY: ${IMAGEKIT_PUBLIC_KEY:-}
+      IMAGEKIT_PRIVATE_KEY: ${IMAGEKIT_PRIVATE_KEY:-}
+      IMAGEKIT_URL_ENDPOINT: ${IMAGEKIT_URL_ENDPOINT:-}
     ports:
       - "8080:8080"
     depends_on:

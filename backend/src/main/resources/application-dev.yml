@@ -13,3 +13,14 @@ logging:
 cors:
   allowed-origins: http://localhost:3000,http://localhost:5173
 
+# Placeholders only; set real values via env for real payments. Same names as application.yml.
+platform:
+  settlement:
+    number: ${PLATFORM_SETTLEMENT_NUMBER:0000000000}
+    bank-code: ${PLATFORM_SETTLEMENT_BANK_CODE:000}
+    name: ${PLATFORM_SETTLEMENT_NAME:Dev Settlement}
+  account:
+    number: ${PLATFORM_ACCOUNT_NUMBER:0000000000}
+    bank-code: ${PLATFORM_ACCOUNT_BANK_CODE:000}
+    name: ${PLATFORM_ACCOUNT_NAME:Dev Platform Account}
+

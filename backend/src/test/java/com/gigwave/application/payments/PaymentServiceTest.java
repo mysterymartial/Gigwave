@@ -26,6 +26,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -89,9 +90,9 @@ public class PaymentServiceTest {
         
         // Set platform fee configuration using reflection
         ReflectionTestUtils.setField(paymentService, "platformFeeAmount", new BigDecimal("200"));
-        ReflectionTestUtils.setField(paymentService, "settlementAccountNumber", "6977519876");
-        ReflectionTestUtils.setField(paymentService, "settlementBankCode", "070");
-        ReflectionTestUtils.setField(paymentService, "settlementAccountName", "Agbaosi Bolarinwa Minasu");
+        ReflectionTestUtils.setField(paymentService, "settlementAccountNumber", "0000000000");
+        ReflectionTestUtils.setField(paymentService, "settlementBankCode", "000");
+        ReflectionTestUtils.setField(paymentService, "settlementAccountName", "Test Settlement");
         ReflectionTestUtils.setField(paymentService, "serverUrl", "http://localhost:8080");
         ReflectionTestUtils.setField(paymentService, "flutterwaveCharge", new BigDecimal("10"));
         
@@ -126,10 +127,11 @@ public class PaymentServiceTest {
     
     @Test
     void testSetupMandateForOrganizer_Success() {
-        // Arrange
         BigDecimal maxAmount = new BigDecimal("1000000");
-        
+        User user = User.builder().id(userId).email("organizer@test.com").phone("08012345678").build();
+
         when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.of(testBankAccount));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(onePipeClient.setupMandate(any())).thenReturn(
                 MandateResponse.builder()
                         .status("pending")
@@ -142,41 +144,39 @@ public class PaymentServiceTest {
             mandate.setId(mandateId);
             return mandate;
         });
-        
-        // Act
-        var result = paymentService.setupMandateForOrganizer(userId, bankAccountId, maxAmount);
-        
-        // Assert
+
+        var result = paymentService.setupMandateForOrganizer(userId, bankAccountId, maxAmount, null);
+
         assertNotNull(result);
         assertEquals("MANDATE_123", result.getMandateRef());
         verify(bankAccountRepository).findById(bankAccountId);
+        verify(userRepository).findById(userId);
         verify(onePipeClient).setupMandate(any());
         verify(mandateRepository).save(any(PaymentMandate.class));
     }
     
     @Test
     void testSetupMandateForOrganizer_BankAccountNotFound() {
-        // Boundary: non-existent bank account
         when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.empty());
-        
+
         assertThrows(IllegalArgumentException.class,
-                () -> paymentService.setupMandateForOrganizer(userId, bankAccountId, new BigDecimal("1000000")));
+                () -> paymentService.setupMandateForOrganizer(userId, bankAccountId, new BigDecimal("1000000"), null));
     }
-    
+
     @Test
     void testSetupMandateForOrganizer_WrongUser() {
-        // Boundary: bank account belongs to different user
         UUID otherUserId = UUID.randomUUID();
         when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.of(testBankAccount));
-        
+
         assertThrows(IllegalArgumentException.class,
-                () -> paymentService.setupMandateForOrganizer(otherUserId, bankAccountId, new BigDecimal("1000000")));
+                () -> paymentService.setupMandateForOrganizer(otherUserId, bankAccountId, new BigDecimal("1000000"), null));
     }
-    
+
     @Test
     void testSetupMandateForOrganizer_WithZeroMaxAmount() {
-        // Boundary: zero max amount
+        User user = User.builder().id(userId).email("o@test.com").phone("08012345678").build();
         when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.of(testBankAccount));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(onePipeClient.setupMandate(any())).thenReturn(
                 MandateResponse.builder().mandateRef("MANDATE_123").build()
         );
@@ -185,9 +185,9 @@ public class PaymentServiceTest {
             mandate.setId(mandateId);
             return mandate;
         });
-        
-        var result = paymentService.setupMandateForOrganizer(userId, bankAccountId, BigDecimal.ZERO);
-        
+
+        var result = paymentService.setupMandateForOrganizer(userId, bankAccountId, BigDecimal.ZERO, null);
+
         assertNotNull(result);
     }
     
@@ -197,6 +197,8 @@ public class PaymentServiceTest {
         when(mandateRepository.findById(mandateId)).thenReturn(Optional.of(testMandate));
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).email("organizer@test.com").phone("08012345678").build()));
         when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.of(testBankAccount));
+        when(debitRepository.findByBookingId(bookingId)).thenReturn(List.of());
+        when(debitRepository.findByMandateId(mandateId)).thenReturn(List.of());
         when(onePipeClient.initiateDebit(any())).thenReturn(
                 DebitResponse.builder()
                         .status("pending")
@@ -272,6 +274,7 @@ public class PaymentServiceTest {
         
         when(bankAccountRepository.findByUserIdAndIsPayoutDefaultTrue(musicianId)).thenReturn(Optional.of(musicianBankAccount));
         when(userRepository.findById(musicianId)).thenReturn(Optional.of(User.builder().id(musicianId).email("musician@test.com").phone("08098765432").build()));
+        when(payoutRepository.findByBookingId(bookingId)).thenReturn(List.of());
         when(transferClient.initiateTransfer(any(TransferRequest.class))).thenReturn(
                 TransferResponse.builder()
                         .status("pending")
@@ -334,10 +337,11 @@ public class PaymentServiceTest {
     
     @Test
     void testSetupMandateForMusician_Success() {
-        // Test musician mandate setup
         BigDecimal maxAmount = new BigDecimal("1000000");
-        
+        User user = User.builder().id(userId).email("musician@test.com").phone("08087654321").build();
+
         when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.of(testBankAccount));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(onePipeClient.setupMandate(any())).thenReturn(
                 MandateResponse.builder()
                         .status("pending")
@@ -350,9 +354,9 @@ public class PaymentServiceTest {
             mandate.setId(mandateId);
             return mandate;
         });
-        
-        var result = paymentService.setupMandateForMusician(userId, bankAccountId, maxAmount);
-        
+
+        var result = paymentService.setupMandateForMusician(userId, bankAccountId, maxAmount, null);
+
         assertNotNull(result);
         assertEquals("MANDATE_MUSICIAN_123", result.getMandateRef());
         verify(onePipeClient).setupMandate(any());

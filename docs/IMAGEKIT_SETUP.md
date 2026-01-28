@@ -21,36 +21,44 @@ GigWave uses **ImageKit** for cloud-based file storage. ImageKit provides a CDN-
 ### 2. Get Your Credentials
 
 After creating your account, you'll get:
-- **Public Key**: `public_VLCxLSEri/ItdDzlbJyoE1fBvBo=`
-- **Private Key**: `private_GQtHFHi4eAzND7UxXAhiT+Q/KZA=`
-- **URL Endpoint**: `https://ik.imagekit.io/elq0dgja0`
+- **Public Key**: `public_xxxxxxxxxxxxxxxx` (from ImageKit dashboard)
+- **Private Key**: `private_xxxxxxxxxxxxxxxx` (from ImageKit dashboard)
+- **URL Endpoint**: `https://ik.imagekit.io/your-imagekit-id`
 
 ### 3. Configure Environment Variables
 
 #### For Local Development
 
-Update `backend/src/main/resources/application.yml`:
+Add to your `.env` file (never commit `.env`):
+
+```bash
+FILE_STORAGE_TYPE=imagekit
+IMAGEKIT_PUBLIC_KEY=public_xxxxxxxxxxxxxxxx
+IMAGEKIT_PRIVATE_KEY=private_xxxxxxxxxxxxxxxx
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-imagekit-id
+```
+
+Or set in `application.yml` via placeholders only (values from env):
 
 ```yaml
-imagekit:
-  public-key: public_VLCxLSEri/ItdDzlbJyoE1fBvBo=
-  private-key: private_GQtHFHi4eAzND7UxXAhiT+Q/KZA=
-  url-endpoint: https://ik.imagekit.io/elq0dgja0
-
 file:
   storage:
-    type: imagekit  # Use 'local' for local file storage
+    type: ${FILE_STORAGE_TYPE:local}
+imagekit:
+  public-key: ${IMAGEKIT_PUBLIC_KEY:}
+  private-key: ${IMAGEKIT_PRIVATE_KEY:}
+  url-endpoint: ${IMAGEKIT_URL_ENDPOINT:}
 ```
 
 #### For Railway/Production
 
-Set these environment variables in Railway:
+Set these environment variables in Railway (or in `.env` for Docker):
 
 ```
-IMAGEKIT_PUBLIC_KEY=public_VLCxLSEri/ItdDzlbJyoE1fBvBo=
-IMAGEKIT_PRIVATE_KEY=private_GQtHFHi4eAzND7UxXAhiT+Q/KZA=
-IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/elq0dgja0
 FILE_STORAGE_TYPE=imagekit
+IMAGEKIT_PUBLIC_KEY=public_xxxxxxxxxxxxxxxx
+IMAGEKIT_PRIVATE_KEY=private_xxxxxxxxxxxxxxxx
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-imagekit-id
 ```
 
 ### 4. File Storage Types

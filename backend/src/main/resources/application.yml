@@ -15,7 +15,7 @@ spring:
       write-dates-as-timestamps: false
 
 server:
-  port: 8080
+  port: ${PORT:8080}  # Railway provides PORT environment variable
   error:
     include-message: always
     include-binding-errors: always
@@ -29,6 +29,7 @@ onepipe:
   api-key: ${ONEPIPE_API_KEY:your-onepipe-api-key}
   secret-key: ${ONEPIPE_SECRET_KEY:your-onepipe-secret-key}
   environment: ${ONEPIPE_ENV:sandbox}
+  biller-code: ${ONEPIPE_BILLER_CODE:}
 
 # Flutterwave Transfer Configuration
 # Used for transferring money to musicians after deducting platform fee and Flutterwave charges
@@ -41,22 +42,19 @@ flutterwave:
   transfer:
     charge: ${FLUTTERWAVE_TRANSFER_CHARGE:10} # Flutterwave charge per transfer (typically ₦10-15 in Nigeria)
 
-# GigWave platform fee configuration
+# GigWave platform configuration. Set via env; no defaults for account details.
+# Use same names in .env / Railway: PLATFORM_FEE_AMOUNT, PLATFORM_SETTLEMENT_*, PLATFORM_ACCOUNT_*
 platform:
   fee:
-    amount: 200 # Fixed platform fee in Naira per successful gig payment
+    amount: ${PLATFORM_FEE_AMOUNT:200}
   settlement:
-    # Settlement account (Fidelity Bank) where all debited funds first land
-    # After collecting from gig owner: money goes here
-    # From this account: 200 goes to platform account, rest goes to musician
-    number: ${PLATFORM_SETTLEMENT_ACCOUNT:6977519876}
-    bank-code: ${PLATFORM_SETTLEMENT_BANK_CODE:070} # Fidelity Bank code
-    name: ${PLATFORM_SETTLEMENT_ACCOUNT_NAME:Agbaosi Bolarinwa Minasu}
+    number: ${PLATFORM_SETTLEMENT_NUMBER}
+    bank-code: ${PLATFORM_SETTLEMENT_BANK_CODE}
+    name: ${PLATFORM_SETTLEMENT_NAME}
   account:
-    # Platform account that receives the 200 fee from settlement account
-    number: ${PLATFORM_ACCOUNT:0121753572}
-    bank-code: ${PLATFORM_BANK_CODE:232} # Sterling Bank code
-    name: ${PLATFORM_ACCOUNT_NAME:Agbaosi Bolarinwa Minasu}
+    number: ${PLATFORM_ACCOUNT_NUMBER}
+    bank-code: ${PLATFORM_ACCOUNT_BANK_CODE}
+    name: ${PLATFORM_ACCOUNT_NAME}
 
 logging:
   level:
@@ -65,7 +63,7 @@ logging:
 
 file:
   storage:
-    type: ${FILE_STORAGE_TYPE:imagekit} # Options: 'local' or 'imagekit'
+    type: ${FILE_STORAGE_TYPE:local} # Options: 'local' or 'imagekit'; set via .env
   upload:
     chat-media-dir: uploads/chat-media
     dispute-evidence-dir: uploads/dispute-evidence
@@ -75,11 +73,11 @@ file:
     max-file-size: 10MB
     max-request-size: 10MB
 
-# ImageKit Configuration
+# ImageKit Configuration (set in .env when FILE_STORAGE_TYPE=imagekit)
 imagekit:
-  public-key: ${IMAGEKIT_PUBLIC_KEY:public_VLCxLSEri/ItdDzlbJyoE1fBvBo=}
-  private-key: ${IMAGEKIT_PRIVATE_KEY:private_GQtHFHi4eAzND7UxXAhiT+Q/KZA=}
-  url-endpoint: ${IMAGEKIT_URL_ENDPOINT:https://ik.imagekit.io/elq0dgja0}
+  public-key: ${IMAGEKIT_PUBLIC_KEY:}
+  private-key: ${IMAGEKIT_PRIVATE_KEY:}
+  url-endpoint: ${IMAGEKIT_URL_ENDPOINT:}
 
 # Notification service configuration
 # Termii is a Nigerian provider that supports SMS, Email, and WhatsApp

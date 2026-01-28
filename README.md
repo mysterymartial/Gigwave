@@ -203,23 +203,23 @@ Key entities:
 
 ## OnePipe Integration
 
-The backend includes a OnePipe client implementation following OnePipe PWA API patterns:
-- **Mandate Setup**: Create direct debit mandates for both organizers and musicians
-- **Collect API**: Debit money from organizer's account (using mandate)
-- **Transfer API**: Transfer money to musician and platform fee to GigWave account
-- **Webhook Handling**: Receive status updates for mandates, debits, and payouts
+The backend includes a OnePipe v2 client implementation:
+- **Create Mandate**: OnePipe `create mandate` with TripleDES encryption, `activation_method: "transfer"` (NIBSS), `biller_code`, optional BVN
+- **Collect API**: Debit from organizer's account using mandate; `auth_provider: "NIBSS"`, TripleDES for `auth.secure`
+- **Transfer**: Flutterwave for musician payout and platform fee
+- **Webhook Handling**: Mandate, debit, and payout status updates (HMAC-SHA256 verification)
 
 ### Platform Fee
-- Fixed fee: **₦200 per successful gig payment**
+- Fixed fee: **₦200 per successful gig payment** (configurable via `PLATFORM_FEE_AMOUNT`)
 - Charged to: **Organizer** (added to accepted amount)
-- GigWave Account: 0121753572 (Sterling Bank - Agbaosi Bolarinwa Minasu)
+- Settlement and platform account details are **env-only** (`PLATFORM_SETTLEMENT_*`, `PLATFORM_ACCOUNT_*`). See docs.
 
 ### OnePipe API Actions Used
-- `setup_mandate` - Create mandate for direct debit authorization
-- `collect` - Debit from organizer's account using mandate
-- `transfer` - Transfer funds to musician and platform account
+- `create mandate` - Direct debit mandate (PaywithAccount, meta: amount, bvn, biller_code, activation_method transfer)
+- `collect` - Debit via mandate (NIBSS, TripleDES encrypted account; meta: biller_code)
+- **Transfer** via Flutterwave (not OnePipe)
 
-Replace the dummy implementation with actual OnePipe API calls using your credentials.
+Set `ONEPIPE_API_KEY`, `ONEPIPE_SECRET_KEY`, and `ONEPIPE_BILLER_CODE` (optional) in production. See [API_CONFIGURATION](./docs/API_CONFIGURATION.md) and [API_INTEGRATION](./docs/API_INTEGRATION.md).
 
 ## Testing
 

@@ -12,3 +12,14 @@ logging:
     de.flapdoodle.embed.mongo: INFO
     root: INFO
 
+# Placeholders only for tests. Same env names as application.yml.
+platform:
+  settlement:
+    number: ${PLATFORM_SETTLEMENT_NUMBER:0000000000}
+    bank-code: ${PLATFORM_SETTLEMENT_BANK_CODE:070}
+    name: ${PLATFORM_SETTLEMENT_NAME:Test Settlement}
+  account:
+    number: ${PLATFORM_ACCOUNT_NUMBER:0000000000}
+    bank-code: ${PLATFORM_ACCOUNT_BANK_CODE:070}
+    name: ${PLATFORM_ACCOUNT_NAME:Test Platform Account}
+

@@ -122,7 +122,7 @@ public class ImageKitFileStorageService implements FileStorageService {
     }
 
     private String extractFileIdFromUrl(String fileUrl) {
-        // ImageKit URLs format: https://ik.imagekit.io/elq0dgja0/folder/filename.jpg
+        // ImageKit URLs format: https://ik.imagekit.io/{urlEndpoint}/folder/filename.jpg
         // We need to query ImageKit to get the file ID from the URL
         if (fileUrl != null && fileUrl.contains(urlEndpoint)) {
             try {

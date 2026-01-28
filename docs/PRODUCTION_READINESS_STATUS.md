@@ -11,7 +11,7 @@
 - ✅ `backend/env.example` - Template file created
 
 ### MongoDB Atlas Connection:
-- ✅ Connection string configured: `mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/gigwave_prod`
+- ✅ Connection string configured via `MONGODB_URI` in `.env` (e.g. Atlas)
 - ✅ Must be set via `MONGODB_URI` environment variable
 - ✅ No hardcoded credentials in code
 
@@ -75,7 +75,7 @@ Set these in your production environment:
 
 ```bash
 # MongoDB Atlas (Already configured)
-MONGODB_URI=mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
 MONGODB_DATABASE=gigwave_prod
 
 # JWT (Generate strong secret)
@@ -100,7 +100,7 @@ CORS_ORIGINS=https://gigwave.com
 
 1. **Set Environment Variables**:
    ```bash
-   export MONGODB_URI="mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0"
+   export MONGODB_URI="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0"
    export JWT_SECRET="<your-generated-secret>"
    export ONEPIPE_API_KEY="<from-onepipe-dashboard>"
    export ONEPIPE_SECRET_KEY="<from-onepipe-dashboard>"
@@ -170,7 +170,7 @@ CORS_ORIGINS=https://gigwave.com
 - ✅ `backend/env.example` - Template file created
 
 ### MongoDB Atlas Connection:
-- ✅ Connection string configured: `mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/gigwave_prod`
+- ✅ Connection string configured via `MONGODB_URI` in `.env` (e.g. Atlas)
 - ✅ Must be set via `MONGODB_URI` environment variable
 - ✅ No hardcoded credentials in code
 
@@ -234,7 +234,7 @@ Set these in your production environment:
 
 ```bash
 # MongoDB Atlas (Already configured)
-MONGODB_URI=mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
 MONGODB_DATABASE=gigwave_prod
 
 # JWT (Generate strong secret)
@@ -259,7 +259,7 @@ CORS_ORIGINS=https://gigwave.com
 
 1. **Set Environment Variables**:
    ```bash
-   export MONGODB_URI="mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0"
+   export MONGODB_URI="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0"
    export JWT_SECRET="<your-generated-secret>"
    export ONEPIPE_API_KEY="<from-onepipe-dashboard>"
    export ONEPIPE_SECRET_KEY="<from-onepipe-dashboard>"

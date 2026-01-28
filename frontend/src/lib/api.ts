@@ -18,6 +18,7 @@ import type {
   Customer,
   AdminDebitRequest,
   AdminDebitResponse,
+  DisputeStatus,
 } from '../types';
 
 const api = axios.create({
@@ -133,19 +134,43 @@ export const paymentApi = {
     );
     return response.data;
   },
-  setupOrganizerMandate: async (bankAccountId: string, maxAmount: number) => {
+  setupOrganizerMandate: async (
+    bankAccountId: string,
+    maxAmount: number,
+    bvn?: string,
+    idempotencyKey?: string
+  ) => {
+    const params: Record<string, string | number> = { bankAccountId, maxAmount };
+    if (bvn != null && bvn !== '') params.bvn = bvn;
+    const config: { params: Record<string, string | number>; headers?: Record<string, string> } = { params };
+    if (idempotencyKey != null && idempotencyKey !== '') config.headers = { 'Idempotency-Key': idempotencyKey };
     const response = await api.post<{ status: string; mandateRef: string; authorizationUrl: string }>(
       '/payments/mandate/setup/organizer',
       null,
-      { params: { bankAccountId, maxAmount } }
+      config
     );
     return response.data;
   },
-  setupMusicianMandate: async (bankAccountId: string, maxAmount: number) => {
+  setupMusicianMandate: async (
+    bankAccountId: string,
+    maxAmount: number,
+    bvn?: string,
+    idempotencyKey?: string
+  ) => {
+    const params: Record<string, string | number> = { bankAccountId, maxAmount };
+    if (bvn != null && bvn !== '') params.bvn = bvn;
+    const config: { params: Record<string, string | number>; headers?: Record<string, string> } = { params };
+    if (idempotencyKey != null && idempotencyKey !== '') config.headers = { 'Idempotency-Key': idempotencyKey };
     const response = await api.post<{ status: string; mandateRef: string; authorizationUrl: string }>(
       '/payments/mandate/setup/musician',
       null,
-      { params: { bankAccountId, maxAmount } }
+      config
+    );
+    return response.data;
+  },
+  initiateDebit: async (bookingId: string) => {
+    const response = await api.post<{ status: string; transactionRef: string; message: string }>(
+      `/payments/bookings/${bookingId}/debit`
     );
     return response.data;
   },
@@ -255,7 +280,7 @@ export const reviewApi = {
 
 // Dispute API
 export const disputeApi = {
-  create: async (data: Omit<Dispute, 'id' | 'createdAt' | 'resolvedAt'>) => {
+  create: async (data: Omit<Dispute, 'id' | 'createdAt' | 'resolvedAt' | 'status'>) => {
     const response = await api.post<Dispute>('/disputes', data);
     return response.data;
   },
@@ -269,6 +294,12 @@ export const disputeApi = {
   },
   get: async (disputeId: string) => {
     const response = await api.get<Dispute>(`/disputes/${disputeId}`);
+    return response.data;
+  },
+  resolve: async (disputeId: string, resolution: DisputeStatus) => {
+    const response = await api.post<Dispute>(`/disputes/${disputeId}/resolve`, null, {
+      params: { resolution },
+    });
     return response.data;
   },
 };
@@ -288,6 +319,15 @@ export const kycApi = {
   getStatus: async () => {
     const response = await api.get<KycStatus>('/kyc/status');
     return response.data;
+  },
+  verifyKyc: async (userId: string) => {
+    await api.put(`/kyc/${userId}/verify`);
+  },
+  rejectKyc: async (userId: string) => {
+    await api.put(`/kyc/${userId}/reject`);
+  },
+  updateKycStatus: async (userId: string, status: KycStatus) => {
+    await api.put(`/kyc/${userId}/status`, null, { params: { status } });
   },
 };
 

@@ -20,4 +20,8 @@ public class DebitRequest {
     private String email;
     private String phone;
     private String accountName;
+    /** Organizer account number for collect auth.secure (OnePipe v2 TripleDES encryption). */
+    private String accountNumber;
+    /** Organizer bank (CBN) code for collect auth.secure. */
+    private String bankCode;
 }

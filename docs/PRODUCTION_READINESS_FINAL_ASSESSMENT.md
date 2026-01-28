@@ -36,7 +36,7 @@ Your implementation matches the intended use case:
 ## 2. MongoDB Atlas Setup ✅ READY
 
 ### Current Status:
-- ✅ **Connection string configured**: `mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/`
+- ✅ **Connection string configured** via `MONGODB_URI` in `.env` (e.g. Atlas)
 - ✅ **Using environment variables**: `${MONGODB_URI}` in `application-prod.yml`
 - ✅ **No hardcoded credentials**: All secrets in env vars
 - ✅ **Setup guide available**: `MONGODB_ATLAS_SETUP.md`
@@ -107,20 +107,20 @@ public void sendBookingAcceptedNotification(...) {
 ## 4. Google Maps Integration ❌ NOT IMPLEMENTED
 
 ### Current Status:
-- ✅ **API Key provided**: `VITE_GOOGLE_MAPS_API_KEY=AIzaSyCQsOi8qGpI1xSC-dsnc2A_MBRi3XcAva8`
 - ✅ **Location data stored**: `latitude`, `longitude` in `Gig` entity
 - ❌ **NO Map component**: No React Google Maps component
 - ❌ **NO Map display**: Location shows as text only
 - ❌ **NO Directions**: No "Get Directions" functionality
-- ❌ **NO `.env` file**: API key not configured in frontend
+- ❌ **NO `.env` file**: API key not configured in frontend (use `VITE_GOOGLE_MAPS_API_KEY`; never commit real keys)
 
 ### Missing Implementation:
 
 #### 1. Frontend `.env` File
 **Required**:
 ```env
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyCQsOi8qGpI1xSC-dsnc2A_MBRi3XcAva8
+VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 ```
+Get key from Google Cloud Console (Maps JavaScript API). Never commit real keys.
 
 **Status**: ❌ File doesn't exist in `frontend/.env`
 
@@ -168,7 +168,7 @@ VITE_GOOGLE_MAPS_API_KEY=AIzaSyCQsOi8qGpI1xSC-dsnc2A_MBRi3XcAva8
 - [ ] **Notification when musician bids** (Organizer won't know)
 - [ ] **Notification when gig is created** (Musicians won't know)
 - [ ] **Real notification service** (Only logs, doesn't send)
-- [ ] **Frontend `.env` with Google Maps API key**
+- [ ] **Frontend `.env` with `VITE_GOOGLE_MAPS_API_KEY`** (never commit real keys)
 
 ### ⚠️ Recommended Improvements
 - [ ] Cumulative mandate debit tracking
@@ -184,7 +184,7 @@ VITE_GOOGLE_MAPS_API_KEY=AIzaSyCQsOi8qGpI1xSC-dsnc2A_MBRi3XcAva8
 ### 🔴 CRITICAL (Must Fix):
 
 1. **Implement Google Maps Integration**
-   - Create `frontend/.env` with `VITE_GOOGLE_MAPS_API_KEY`
+   - Create `frontend/.env` with `VITE_GOOGLE_MAPS_API_KEY` (placeholder in docs only; never commit real keys)
    - Install `@react-google-maps/api` package
    - Create `LocationMap` component
    - Integrate in `GigDetailsPage`

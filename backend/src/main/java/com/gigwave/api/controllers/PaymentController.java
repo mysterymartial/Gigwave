@@ -1,6 +1,8 @@
 package com.gigwave.api.controllers;
 
 import com.gigwave.application.payments.PaymentService;
+import com.gigwave.domain.payments.IdempotencyRecord;
+import com.gigwave.infrastructure.persistence.payments.IdempotencyRepository;
 import com.gigwave.infrastructure.payments.onepipe.dto.BankListResponse;
 import com.gigwave.infrastructure.payments.onepipe.dto.MandateResponse;
 import com.gigwave.infrastructure.security.CurrentUser;
@@ -10,15 +12,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
+    private static final long IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000L;
+
     private final PaymentService paymentService;
+    private final IdempotencyRepository idempotencyRepository;
 
     @GetMapping("/banks")
     public ResponseEntity<BankListResponse> getSupportedBanks() {
@@ -35,20 +42,45 @@ public class PaymentController {
     public ResponseEntity<MandateResponse> setupOrganizerMandate(
             @RequestParam UUID bankAccountId,
             @RequestParam BigDecimal maxAmount,
-            @CurrentUser UUID userId
+            @CurrentUser UUID userId,
+            @RequestParam(required = false) String bvn,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
-        MandateResponse response = paymentService.setupMandateForOrganizer(userId, bankAccountId, maxAmount);
-        return ResponseEntity.ok(response);
+        return mandateWithIdempotency(idempotencyKey,
+                () -> paymentService.setupMandateForOrganizer(userId, bankAccountId, maxAmount, bvn));
     }
 
     @PostMapping("/mandate/setup/musician")
     public ResponseEntity<MandateResponse> setupMusicianMandate(
             @RequestParam UUID bankAccountId,
             @RequestParam BigDecimal maxAmount,
-            @CurrentUser UUID userId
+            @CurrentUser UUID userId,
+            @RequestParam(required = false) String bvn,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
-        MandateResponse response = paymentService.setupMandateForMusician(userId, bankAccountId, maxAmount);
-        return ResponseEntity.ok(response);
+        return mandateWithIdempotency(idempotencyKey,
+                () -> paymentService.setupMandateForMusician(userId, bankAccountId, maxAmount, bvn));
+    }
+
+    private ResponseEntity<MandateResponse> mandateWithIdempotency(String key, Supplier<MandateResponse> supplier) {
+        if (key != null && !key.isBlank()) {
+            var existing = idempotencyRepository.findByKey(key);
+            if (existing.isPresent() && existing.get().getExpiresAt().after(new Date())) {
+                var r = existing.get();
+                return ResponseEntity.ok(MandateResponse.builder()
+                        .mandateRef(r.getMandateRef()).authorizationUrl(r.getAuthorizationUrl())
+                        .status(r.getStatus()).message(r.getMessage() != null ? r.getMessage() : "").build());
+            }
+        }
+        MandateResponse resp = supplier.get();
+        if (key != null && !key.isBlank()) {
+            idempotencyRepository.save(IdempotencyRecord.builder()
+                    .id(UUID.randomUUID()).key(key)
+                    .mandateRef(resp.getMandateRef()).authorizationUrl(resp.getAuthorizationUrl())
+                    .status(resp.getStatus()).message(resp.getMessage())
+                    .expiresAt(new Date(System.currentTimeMillis() + IDEMPOTENCY_TTL_MS)).build());
+        }
+        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/bookings/{bookingId}/debit")
@@ -66,13 +98,12 @@ public class PaymentController {
     @PostMapping("/webhooks/mandate")
     public ResponseEntity<Void> handleMandateWebhook(
             @RequestBody String requestBody,
-            @RequestHeader(value = "X-OnePipe-Signature", required = false) String signature
+            @RequestHeader(value = "X-OnePipe-Signature") String signature
     ) {
-        // Verify webhook signature if provided
-        if (signature != null && !paymentService.verifyWebhookSignature(requestBody, signature)) {
+        if (signature == null || signature.isBlank() || !paymentService.verifyWebhookSignature(requestBody, signature)) {
             return ResponseEntity.status(401).build(); // Unauthorized
         }
-        
+
         // Parse JSON payload
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -90,13 +121,12 @@ public class PaymentController {
     @PostMapping("/webhooks/debit")
     public ResponseEntity<Void> handleDebitWebhook(
             @RequestBody String requestBody,
-            @RequestHeader(value = "X-OnePipe-Signature", required = false) String signature
+            @RequestHeader(value = "X-OnePipe-Signature") String signature
     ) {
-        // Verify webhook signature if provided
-        if (signature != null && !paymentService.verifyWebhookSignature(requestBody, signature)) {
+        if (signature == null || signature.isBlank() || !paymentService.verifyWebhookSignature(requestBody, signature)) {
             return ResponseEntity.status(401).build(); // Unauthorized
         }
-        
+
         // Parse JSON payload
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -117,12 +147,16 @@ public class PaymentController {
             @RequestHeader(value = "X-OnePipe-Signature", required = false) String onePipeSignature,
             @RequestHeader(value = "verif-hash", required = false) String flutterwaveHash
     ) {
-        // Verify webhook signature if provided (supports both OnePipe and Flutterwave)
-        if (onePipeSignature != null && !paymentService.verifyWebhookSignature(requestBody, onePipeSignature)) {
-            return ResponseEntity.status(401).build(); // Unauthorized
+        boolean onePipeValid = onePipeSignature != null && !onePipeSignature.isBlank()
+                && paymentService.verifyWebhookSignature(requestBody, onePipeSignature);
+        boolean flwValid = flutterwaveHash != null && !flutterwaveHash.isBlank();
+        if (!onePipeValid && !flwValid) {
+            return ResponseEntity.status(401).build(); // Require at least one valid signature
         }
-        // Flutterwave webhook verification can be added here if needed
-        
+        if (onePipeSignature != null && !onePipeSignature.isBlank() && !onePipeValid) {
+            return ResponseEntity.status(401).build(); // OnePipe signature invalid
+        }
+
         // Parse JSON payload
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();

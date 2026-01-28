@@ -34,7 +34,7 @@
 ### 2. Environment Variables Setup
 - ⚠️ **Required**: Create `.env` file in `backend/` directory with:
   ```bash
-  MONGODB_URI=mongodb+srv://bolasax16_db_user:wpNqIPQIuzpwrJIN@cluster0.wxojlvd.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
+  MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
   JWT_SECRET=<generate-strong-secret>
   ONEPIPE_API_KEY=<your-key>
   ONEPIPE_SECRET_KEY=<your-secret>

@@ -28,7 +28,7 @@ public class ImageKitFileStorageServiceTest {
     
     private ImageKitFileStorageService fileStorageService;
     
-    private String testUrl = "https://ik.imagekit.io/elq0dgja0/chat-media/test.jpg";
+    private String testUrl = "https://ik.imagekit.io/test-id/chat-media/test.jpg";
     
     @BeforeEach
     void setUp() throws Exception {
@@ -43,7 +43,7 @@ public class ImageKitFileStorageServiceTest {
         
         Field urlEndpointField = ImageKitFileStorageService.class.getDeclaredField("urlEndpoint");
         urlEndpointField.setAccessible(true);
-        urlEndpointField.set(fileStorageService, "https://ik.imagekit.io/elq0dgja0");
+        urlEndpointField.set(fileStorageService, "https://ik.imagekit.io/test-id");
     }
     
     @Test
@@ -77,7 +77,7 @@ public class ImageKitFileStorageServiceTest {
                 "file", "evidence.pdf", "application/pdf", "test content".getBytes());
         
         Result result = new Result();
-        result.setUrl("https://ik.imagekit.io/elq0dgja0/dispute-evidence/test.pdf");
+        result.setUrl("https://ik.imagekit.io/test-id/dispute-evidence/test.pdf");
         
         when(imageKit.upload(any(FileCreateRequest.class))).thenReturn(result);
         
@@ -94,7 +94,7 @@ public class ImageKitFileStorageServiceTest {
                 "file", "id.jpg", "image/jpeg", "test content".getBytes());
         
         Result result = new Result();
-        result.setUrl("https://ik.imagekit.io/elq0dgja0/kyc-documents/test.jpg");
+        result.setUrl("https://ik.imagekit.io/test-id/kyc-documents/test.jpg");
         
         when(imageKit.upload(any(FileCreateRequest.class))).thenReturn(result);
         

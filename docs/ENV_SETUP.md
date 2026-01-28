@@ -8,36 +8,45 @@ All sensitive data (database credentials, API keys, JWT secrets) **MUST** be sto
 
 ### Required Variables for Production
 
-Create a `.env` file in the `backend/` directory with the following variables:
+Use a single `.env` file at the **project root** (where `docker-compose.yml` lives). All secrets go there; **never commit** `.env`.
+
+1. Copy `.env.example` to `.env` in the project root.
+2. Set your MongoDB Atlas URI, JWT secret, OnePipe keys, etc. in `.env`.
+3. **Docker Compose** reads `.env` automatically for `docker-compose up` / `docker-compose build`.
+4. For **local** `mvn spring-boot:run`: export variables from `.env` (e.g. `set -a && source .env && set +a` on Linux/Mac, or use your IDE’s env config) then run the backend.
+
+Example `.env` contents (see `.env.example` for full list):
 
 ```bash
-# Spring Profile
-SPRING_PROFILES_ACTIVE=prod
-
-# MongoDB Atlas Connection
-MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
+# MongoDB Atlas – set your real URI here
+MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
 MONGODB_DATABASE=gigwave_prod
 
-# JWT Configuration
-# Generate a strong secret: openssl rand -base64 32
+# JWT – generate: openssl rand -base64 32
 JWT_SECRET=your-generated-256-bit-secret-key-minimum-32-characters
 
-# OnePipe Payment Gateway
-ONEPIPE_BASE_URL=https://api.onepipe.io/v2/transact
+# OnePipe (from OnePipe dashboard)
 ONEPIPE_API_KEY=your-onepipe-api-key
 ONEPIPE_SECRET_KEY=your-onepipe-secret-key
+ONEPIPE_BASE_URL=https://api.onepipe.io/v2/transact
 ONEPIPE_ENV=sandbox
+ONEPIPE_BILLER_CODE=
 
-# CORS Configuration
+# File storage: use "local" unless you set ImageKit keys
+FILE_STORAGE_TYPE=local
+
+# CORS, etc.
 CORS_ORIGINS=https://gigwave.com,https://www.gigwave.com
+SPRING_PROFILES_ACTIVE=prod
 ```
 
 ### How to Set Environment Variables
 
-#### Option 1: Using .env file (Recommended for Development)
-1. Copy `.env.example` to `.env` in the `backend/` directory
-2. Fill in your actual values
-3. The application will automatically load these (if using Spring Boot 2.4+)
+#### Option 1: .env at project root (recommended)
+1. Copy `.env.example` to `.env` at the project root.
+2. Fill in your actual values (MongoDB Atlas, JWT, OnePipe, etc.).
+3. **Docker Compose** uses `.env` for variable substitution when you run `docker-compose up`.
+4. For **local backend** run: export vars from `.env` (or use IDE env), then `mvn spring-boot:run`.
 
 #### Option 2: System Environment Variables (Recommended for Production)
 ```bash
@@ -75,11 +84,11 @@ VITE_APP_NAME=GigWave
 
 ## Security Checklist
 
-- ✅ `.env` files are in `.gitignore`
-- ✅ `.env.example` files exist (without real secrets)
-- ✅ No hardcoded secrets in configuration files
-- ✅ Production config uses `${VARIABLE_NAME}` format
-- ✅ Default values in config are placeholders only
+- ✅ `.env` is in `.gitignore`; never commit `.env`
+- ✅ `.env.example` exists at project root (placeholders only, safe to commit)
+- ✅ No hardcoded secrets in config or code
+- ✅ Production config uses `${VAR}` from environment
+- ✅ Code and scripts **do not log or expose** env variable values (e.g. keys, passwords)
 
 ## Current Status
 
@@ -108,10 +117,10 @@ openssl rand -base64 32
 ### MongoDB Connection String:
 Format: `mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/database?retryWrites=true&w=majority&appName=Cluster0`
 
-Your current credentials:
-- Username: `bolasax16_db_user`
-- Password: `wpNqIPQIuzpwrJIN`
-- Cluster: `cluster0.wxojlvd.mongodb.net`
+Use your own Atlas credentials (store in `.env` only; never commit):
+- Username: your Atlas database user
+- Password: your Atlas database password
+- Cluster: `cluster0.xxxxx.mongodb.net` (from Atlas)
 - Database: `gigwave_prod`
 
 

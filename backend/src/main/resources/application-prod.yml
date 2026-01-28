@@ -20,6 +20,7 @@ cors:
   allowed-origins: ${CORS_ORIGINS:https://gigwave.com}
 
 server:
+  port: ${PORT:8080}  # Railway provides PORT environment variable
   error:
     include-stacktrace: never
     include-message: on-param

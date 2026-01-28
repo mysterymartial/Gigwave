@@ -12,6 +12,7 @@ import java.util.UUID;
 @Repository
 public interface DebitTransactionRepository extends MongoRepository<DebitTransaction, UUID> {
     List<DebitTransaction> findByBookingId(UUID bookingId);
+    List<DebitTransaction> findByMandateId(UUID mandateId);
     Optional<DebitTransaction> findByProviderRef(String providerRef);
     List<DebitTransaction> findByStatus(DebitStatus status);
 }

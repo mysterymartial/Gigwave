@@ -1,9 +1,0 @@
-onepipe
-my api key =GerTq6lajrS2gA7nX2By_964df4676c824a398ba75218eab1c4fc
-my scerect key = W0zX67kKKLRoSvRx
-
-image kit
-api key 
-public key =public_VLCxLSEri/ItdDzlbJyoE1fBvBo=
-private key =private_GQtHFHi4eAzND7UxXAhiT+Q/KZA=
-

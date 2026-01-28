@@ -78,7 +78,7 @@ Your GigWave application is **production-ready** with the following status:
 
 ### 2. MongoDB Atlas Password
 - ⚠️ **Update `.env` file** - Replace `<db_password>` with actual password
-- ✅ Connection string already configured: `mongodb+srv://bolasax16_db_user:<db_password>@cluster0.wxojlvd.mongodb.net/gigwave_prod`
+- ✅ Connection string via `MONGODB_URI` in `.env` (e.g. `mongodb+srv://USER:PASSWORD@cluster...`)
 
 ### 3. JWT Secret (CRITICAL)
 - ⚠️ **Generate strong secret** - Minimum 32 characters
@@ -93,7 +93,7 @@ Your GigWave application is **production-ready** with the following status:
 Set these in your production environment:
 ```bash
 # MongoDB Atlas
-MONGODB_URI=mongodb+srv://bolasax16_db_user:YOUR_PASSWORD@cluster0.wxojlvd.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/gigwave_prod?retryWrites=true&w=majority&appName=Cluster0
 MONGODB_DATABASE=gigwave_prod
 
 # JWT

@@ -15,16 +15,7 @@
 ### Changes Required in `PaymentService.java`:
 
 #### Add Settlement Account Fields (around line 50-60):
-```java
-@Value("${platform.settlement.number:0121753572}")
-private String settlementAccountNumber;
-
-@Value("${platform.settlement.bank-code:232}")
-private String settlementBankCode;
-
-@Value("${platform.settlement.name:Agbaosi Bolarinwa Minasu}")
-private String settlementAccountName;
-```
+Set via env only; no defaults in production. Use `PLATFORM_SETTLEMENT_ACCOUNT`, `PLATFORM_SETTLEMENT_BANK_CODE`, `PLATFORM_SETTLEMENT_ACCOUNT_NAME` (and `platform.account.*` equivalents). See `application.yml`.
 
 #### Update `initiateDebitForBooking` (around line 148-160):
 ```java
@@ -39,83 +30,11 @@ DebitRequest request = DebitRequest.builder()
         // ... rest of request
 ```
 
-#### Update `createPayoutOnDebitSuccess` (around line 236-304):
-```java
-@Transactional
-public void createPayoutOnDebitSuccess(Booking booking) {
-    // NEW SETTLEMENT ACCOUNT FLOW:
-    // 1. Money is debited from organizer (acceptedAmount + 200) → Settlement account receives it
-    // 2. From settlement account:
-    //    a. Transfer 200 (platform fee) to platform account
-    //    b. Transfer acceptedAmount to musician
-    
-    // Step 1: Transfer platform fee (200) from settlement account to platform account
-    PayoutRequest platformFeePayoutRequest = PayoutRequest.builder()
-            .accountNumber(platformAccountNumber)
-            .bankCode(platformBankCode)
-            .accountName(platformAccountName)
-            .amount(platformFeeAmount)
-            .narration("Platform fee from settlement for gig booking " + booking.getId())
-            .callbackUrl(serverUrl + "/api/payments/webhooks/payout")
-            .userId(null)
-            .email("platform@gigwave.com")
-            .phone("09010849782")
-            .build();
+#### `createPayoutOnDebitSuccess` (PaymentService)
 
-    PayoutResponse platformFeeResponse = onePipeClient.initiatePayout(platformFeePayoutRequest);
-
-    Payout platformFeePayout = Payout.builder()
-            .bookingId(booking.getId())
-            .musicianId(null)
-            .bankAccountId(null)
-            .amount(platformFeeAmount)
-            .providerRef(platformFeeResponse.getTransactionRef())
-            .status(PayoutStatus.PENDING)
-            .attemptedAt(LocalDateTime.now())
-            .build();
-
-    payoutRepository.save(platformFeePayout);
-
-    // Step 2: Transfer remaining amount (acceptedAmount) from settlement account to musician
-    BankAccount payoutAccount = bankAccountRepository
-            .findByUserIdAndIsPayoutDefaultTrue(booking.getMusicianId())
-            .orElseThrow(() -> new IllegalStateException("No default payout account set"));
-
-    User musicianUser = userRepository.findById(booking.getMusicianId())
-            .orElseThrow(() -> new IllegalArgumentException("Musician user not found"));
-
-    PayoutRequest musicianPayoutRequest = PayoutRequest.builder()
-            .accountNumber(payoutAccount.getAccountNumber())
-            .bankCode(payoutAccount.getBankCode())
-            .accountName(payoutAccount.getAccountName())
-            .amount(booking.getAcceptedAmount())
-            .narration("Gig payment for booking " + booking.getId() + " (from settlement account)")
-            .callbackUrl(serverUrl + "/api/payments/webhooks/payout")
-            .userId(musicianUser.getId())
-            .email(musicianUser.getEmail())
-            .phone(musicianUser.getPhone())
-            .build();
-
-    PayoutResponse musicianResponse = onePipeClient.initiatePayout(musicianPayoutRequest);
-
-    Payout musicianPayout = Payout.builder()
-            .bookingId(booking.getId())
-            .musicianId(booking.getMusicianId())
-            .bankAccountId(payoutAccount.getId())
-            .amount(booking.getAcceptedAmount())
-            .providerRef(musicianResponse.getTransactionRef())
-            .status(PayoutStatus.PENDING)
-            .attemptedAt(LocalDateTime.now())
-            .build();
-
-    payoutRepository.save(musicianPayout);
-    
-    log.info("Settlement flow initiated for booking {}: {} to platform, {} to musician", 
-            booking.getId(), platformFeeAmount, booking.getAcceptedAmount());
-}
-```
-
-**NOTE**: There appears to be duplicate content in `PaymentService.java` starting at line 397. The duplicate should be removed.
+- Single transfer to musician: `acceptedAmount - Flutterwave charge`. Platform fee remains in settlement.
+- Settlement account details come from `PLATFORM_SETTLEMENT_*` env only (no defaults in production).
+- Do not hardcode account numbers, bank codes, or contact details in code or config.
 
 ---
 
@@ -130,8 +49,9 @@ public void createPayoutOnDebitSuccess(Booking booking) {
 
 1. **Create `.env` file in frontend directory:**
 ```env
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyCQsOi8qGpI1xSC-dsnc2A_MBRi3XcAva8
+VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 ```
+Get a key from [Google Cloud Console](https://console.cloud.google.com/) (Maps JavaScript API). Never commit real keys.
 
 2. **Install dependency:**
 ```bash
@@ -272,13 +192,13 @@ public GigDto createGig(GigDto dto) {
 3. **Add notification calls** - In BookingService and GigService
 4. **Create test cases** - For all new features
 5. **Update documentation** - All relevant docs
-6. **Create .env file** - In frontend directory with Google Maps API key
+6. **Create .env file** - In frontend directory with `VITE_GOOGLE_MAPS_API_KEY` (use a placeholder in docs; never commit real keys)
 
 ---
 
 ## Important Notes
 
 - **PaymentService.java has duplicate content** starting at line 397 - needs to be cleaned up
-- **Google Maps API key** must be added to `.env` file in frontend directory
+- **Google Maps API key** must be in `frontend/.env` as `VITE_GOOGLE_MAPS_API_KEY` (never commit real keys)
 - **Notification service** currently only logs - needs integration with real provider
 - **Settlement account** configuration added to `application.yml` but PaymentService needs updates

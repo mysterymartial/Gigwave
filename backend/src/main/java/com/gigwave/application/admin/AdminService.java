@@ -138,11 +138,13 @@ public class AdminService {
                 .mandateRef(activeMandate.getMandateRef())
                 .amount(amount)
                 .narration("Admin debit: " + reason)
-                .callbackUrl(null) // Admin debits don't need callbacks
+                .callbackUrl(null)
                 .userId(customerId)
                 .email(customer.getEmail())
                 .phone(customer.getPhone())
                 .accountName(bankAccount.getAccountName())
+                .accountNumber(bankAccount.getAccountNumber())
+                .bankCode(bankAccount.getBankCode())
                 .build();
 
         // Initiate debit

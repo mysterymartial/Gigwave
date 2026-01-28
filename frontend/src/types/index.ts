@@ -168,6 +168,13 @@ export enum KycStatus {
   REJECTED = 'REJECTED',
 }
 
+export enum DisputeStatus {
+  OPEN = 'OPEN',
+  RESOLVED_MUSICIAN = 'RESOLVED_MUSICIAN',
+  RESOLVED_ORGANIZER = 'RESOLVED_ORGANIZER',
+  CANCELLED = 'CANCELLED',
+}
+
 export enum ReportStatus {
   PENDING = 'PENDING',
   REVIEWING = 'REVIEWING',
