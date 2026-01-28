@@ -119,17 +119,17 @@ export default function BankAccountsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
-          <p className="text-gray-400 mt-4">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-4">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {hasNoAccounts && (
           <div className="mb-6 p-4 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-200">
@@ -203,7 +203,7 @@ export default function BankAccountsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-emerald-100 mb-1">Account Number</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-emerald-100 mb-1">Account Number</label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -287,7 +287,7 @@ export default function BankAccountsPage() {
               </div>
             ))
           ) : (
-            <div className="text-center py-12 text-gray-400">No bank accounts added yet</div>
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">No bank accounts added yet</div>
           )}
         </div>
 

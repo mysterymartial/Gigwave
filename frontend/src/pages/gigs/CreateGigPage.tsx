@@ -62,7 +62,7 @@ export default function CreateGigPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-white mb-6">Post a New Gig</h1>
         <form onSubmit={handleSubmit} className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 space-y-6 shadow-xl">

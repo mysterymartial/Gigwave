@@ -22,7 +22,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Logo */}
         <Link
@@ -34,15 +34,15 @@ export default function LoginPage() {
               <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-white">GigWave</span>
+          <span className="text-2xl font-bold text-gray-900 dark:text-white">GigWave</span>
         </Link>
 
         {/* Card */}
-        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
-          <h2 className="text-center text-2xl font-bold text-white mb-2">
+        <div className="bg-white dark:bg-emerald-900/50 rounded-2xl border border-gray-200 dark:border-emerald-700/40 p-8 shadow-xl">
+          <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Sign in to GigWave
           </h2>
-          <p className="text-center text-emerald-200/80 text-sm mb-6">
+          <p className="text-center text-gray-600 dark:text-emerald-200/80 text-sm mb-6">
             Enter your phone or email and password to continue
           </p>
 
@@ -104,7 +104,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center">
-          <Link to="/" className="text-sm text-gray-400 hover:text-teal-400">
+          <Link to="/" className="text-sm text-gray-600 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400">
             ← Back to home
           </Link>
         </p>

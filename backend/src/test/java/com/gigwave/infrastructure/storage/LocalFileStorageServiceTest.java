@@ -24,7 +24,8 @@ public class LocalFileStorageServiceTest {
                 tempDir.resolve("dispute-evidence").toString(),
                 tempDir.resolve("kyc-documents").toString(),
                 tempDir.resolve("report-evidence").toString(),
-                tempDir.resolve("performance-videos").toString()
+                tempDir.resolve("performance-videos").toString(),
+                tempDir.resolve("venue-images").toString()
         );
     }
     

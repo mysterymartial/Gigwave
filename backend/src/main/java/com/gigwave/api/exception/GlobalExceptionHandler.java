@@ -27,12 +27,25 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         log.error("Illegal argument exception: {}", ex.getMessage());
+        String message = ex.getMessage();
+        String path = request.getRequestURI() != null ? request.getRequestURI() : "";
+        // Auth failures on login: return 401 so clients can show "invalid credentials"
+        if (path.contains("/auth/login") && ("Invalid credentials".equals(message) || "User not found".equals(message))) {
+            ErrorResponse error = ErrorResponse.builder()
+                    .timestamp(LocalDateTime.now())
+                    .status(HttpStatus.UNAUTHORIZED.value())
+                    .error("Unauthorized")
+                    .message(message)
+                    .path(path)
+                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
+                .message(message)
+                .path(path)
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }

@@ -59,7 +59,7 @@ export default function BookingDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
           <p className="text-gray-400 mt-4">Loading...</p>
@@ -70,7 +70,7 @@ export default function BookingDetailsPage() {
 
   if (!booking) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center text-gray-400">Booking not found</div>
       </div>
     );
@@ -80,7 +80,7 @@ export default function BookingDetailsPage() {
   const isOrganizer = user?.role === UserRole.EVENT_OWNER;
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
           <h1 className="text-3xl font-bold text-white mb-6">Booking Details</h1>

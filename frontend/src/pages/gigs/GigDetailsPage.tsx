@@ -30,7 +30,7 @@ export default function GigDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
           <p className="text-gray-400 mt-4">Loading...</p>
@@ -41,14 +41,14 @@ export default function GigDetailsPage() {
 
   if (!gig) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center text-gray-400">Gig not found</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
           <h1 className="text-3xl font-bold text-white mb-4">{gig.title}</h1>

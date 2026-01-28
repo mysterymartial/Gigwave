@@ -34,19 +34,19 @@ export default function AdminReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
-          <p className="text-gray-400 mt-4">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-4">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6">Admin - Account Reports</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Admin - Account Reports</h1>
 
         <div className="space-y-4">
           {reports && reports.length > 0 ? (
@@ -145,7 +145,7 @@ export default function AdminReportsPage() {
             </div>
           ))
         ) : (
-          <div className="text-center py-12 text-gray-400">No pending reports</div>
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">No pending reports</div>
         )}
       </div>
       </div>

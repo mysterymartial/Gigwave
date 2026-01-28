@@ -52,7 +52,7 @@ export default function AdminCustomersPage() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading customers...</div>;
+    return <div className="text-center py-8 text-gray-600 dark:text-gray-400">Loading customers...</div>;
   }
 
   return (

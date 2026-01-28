@@ -56,7 +56,7 @@ export default function ChatPage() {
 
   if (threadLoading || messagesLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
           <p className="text-gray-400 mt-4">Loading...</p>
@@ -66,7 +66,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto h-[calc(100vh-200px)] flex flex-col">
         <h1 className="text-2xl font-bold text-white mb-4">Chat</h1>
         <div className="flex-1 overflow-y-auto bg-emerald-900/40 dark:bg-emerald-900/50 rounded-xl border border-emerald-700/40 shadow-lg p-4 mb-4">
