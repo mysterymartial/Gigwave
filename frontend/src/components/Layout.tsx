@@ -21,7 +21,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
+    <div className="min-h-screen bg-gray-900 flex flex-col transition-colors">
       <AppHeader />
       <main className="flex-1">
         <Outlet />

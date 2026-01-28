@@ -6,6 +6,7 @@ import com.gigwave.domain.payments.BankAccount;
 import com.gigwave.infrastructure.security.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,9 @@ public class BankAccountController {
             @Valid @RequestBody BankAccountDto dto,
             @CurrentUser UUID userId
     ) {
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         BankAccount account = bankAccountService.addBankAccount(
                 userId,
                 dto.getBankName(),

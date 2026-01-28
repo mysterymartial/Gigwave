@@ -55,70 +55,81 @@ export default function ChatPage() {
   };
 
   if (threadLoading || messagesLoading) {
-    return <div className="text-center py-8">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+          <p className="text-gray-400 mt-4">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-200px)] flex flex-col">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">Chat</h1>
-      <div className="flex-1 overflow-y-auto bg-white rounded-lg shadow-md p-4 mb-4">
-        {messages && messages.length > 0 ? (
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
-              >
+    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto h-[calc(100vh-200px)] flex flex-col">
+        <h1 className="text-2xl font-bold text-white mb-4">Chat</h1>
+        <div className="flex-1 overflow-y-auto bg-emerald-900/40 dark:bg-emerald-900/50 rounded-xl border border-emerald-700/40 shadow-lg p-4 mb-4">
+          {messages && messages.length > 0 ? (
+            <div className="space-y-4">
+              {messages.map((message) => (
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.senderId === user?.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900'
-                  }`}
+                  key={message.id}
+                  className={`flex ${message.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                 >
-                  {message.text && <p>{message.text}</p>}
-                  {message.mediaUrl && (
-                    <img src={message.mediaUrl} alt="Media" className="mt-2 rounded max-w-full" />
-                  )}
-                  <p className="text-xs mt-1 opacity-75">
-                    {format(new Date(message.createdAt), 'h:mm a')}
-                  </p>
+                  <div
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      message.senderId === user?.id 
+                        ? 'bg-teal-500 text-white' 
+                        : 'bg-gray-800/80 text-emerald-200'
+                    }`}
+                  >
+                    {message.text && <p>{message.text}</p>}
+                    {message.mediaUrl && (
+                      <img src={message.mediaUrl} alt="Media" className="mt-2 rounded max-w-full" />
+                    )}
+                    <p className={`text-xs mt-1 ${message.senderId === user?.id ? 'opacity-75' : 'text-emerald-200/60'}`}>
+                      {format(new Date(message.createdAt), 'h:mm a')}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-        ) : (
-          <div className="text-center text-gray-500 py-8">No messages yet. Start the conversation!</div>
-        )}
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 py-8">No messages yet. Start the conversation!</div>
+          )}
+        </div>
+        <form onSubmit={handleSend} className="flex space-x-2">
+          <input
+            type="text"
+            className="flex-1 px-4 py-3 bg-gray-800/80 border border-emerald-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+            placeholder="Type a message..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <input
+            type="file"
+            accept="image/*,video/*"
+            className="hidden"
+            id="file-input"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+          <label
+            htmlFor="file-input"
+            className="px-4 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg cursor-pointer transition-colors font-medium"
+          >
+            📎
+          </label>
+          <button
+            type="submit"
+            disabled={sendMessage.isPending || (!text && !file)}
+            className="px-6 py-3 bg-teal-500 hover:bg-teal-400 text-white rounded-lg disabled:opacity-50 transition-colors font-semibold"
+          >
+            Send
+          </button>
+        </form>
       </div>
-      <form onSubmit={handleSend} className="flex space-x-2">
-        <input
-          type="text"
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
-          placeholder="Type a message..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <input
-          type="file"
-          accept="image/*,video/*"
-          className="hidden"
-          id="file-input"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-        />
-        <label
-          htmlFor="file-input"
-          className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 cursor-pointer"
-        >
-          📎
-        </label>
-        <button
-          type="submit"
-          disabled={sendMessage.isPending || (!text && !file)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          Send
-        </button>
-      </form>
     </div>
   );
 }

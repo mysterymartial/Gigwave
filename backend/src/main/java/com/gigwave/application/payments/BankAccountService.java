@@ -16,6 +16,16 @@ public class BankAccountService {
 
     @Transactional
     public BankAccount addBankAccount(UUID userId, String bankName, String bankCode, String accountNumber, String accountName, Boolean isPayoutDefault) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+        String trimmedBankName = bankName != null ? bankName.trim() : "";
+        String trimmedBankCode = bankCode != null ? bankCode.trim() : "";
+        String trimmedAccountNumber = accountNumber != null ? accountNumber.trim() : "";
+        String trimmedAccountName = accountName != null ? accountName.trim() : "";
+        if (trimmedBankName.isEmpty() || trimmedBankCode.isEmpty() || trimmedAccountNumber.isEmpty() || trimmedAccountName.isEmpty()) {
+            throw new IllegalArgumentException("Bank name, bank code, account number, and account name are required");
+        }
         if (isPayoutDefault) {
             bankAccountRepository.findByUserIdAndIsPayoutDefaultTrue(userId)
                     .ifPresent(account -> {
@@ -25,11 +35,12 @@ public class BankAccountService {
         }
 
         BankAccount bankAccount = BankAccount.builder()
+                .id(UUID.randomUUID())
                 .userId(userId)
-                .bankName(bankName)
-                .bankCode(bankCode)
-                .accountNumber(accountNumber)
-                .accountName(accountName)
+                .bankName(trimmedBankName)
+                .bankCode(trimmedBankCode)
+                .accountNumber(trimmedAccountNumber)
+                .accountName(trimmedAccountName)
                 .isPayoutDefault(isPayoutDefault != null && isPayoutDefault)
                 .build();
 

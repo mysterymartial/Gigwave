@@ -61,9 +61,9 @@ export default function GigCard({ gig }: GigCardProps) {
   const displayPrice = gig.budgetMax ? `₦${gig.budgetMax.toLocaleString()}` : `₦${gig.budgetMin?.toLocaleString() || '0'}`;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-lg">
+    <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-xl overflow-hidden border border-emerald-700/40 hover:border-teal-400 transition-all hover:shadow-xl shadow-lg">
       {/* Gig Image */}
-      <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-900">
+      <div className="relative h-48 bg-gradient-to-br from-gray-700 to-gray-900">
         {gig.venuePictureUrl ? (
           <img
             src={gig.venuePictureUrl}
@@ -72,13 +72,13 @@ export default function GigCard({ gig }: GigCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-16 h-16 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
             </svg>
           </div>
         )}
         {/* Tag */}
-        <div className="absolute top-3 right-3 bg-gray-900/80 dark:bg-gray-900/80 backdrop-blur-sm text-white px-3 py-1 rounded-md text-xs font-medium">
+        <div className="absolute top-3 right-3 bg-gray-900/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
           {gigTag}
         </div>
       </div>
@@ -86,18 +86,18 @@ export default function GigCard({ gig }: GigCardProps) {
       {/* Card Content */}
       <div className="p-5">
         <Link to={`/gigs/${gig.id}`}>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+          <h3 className="text-xl font-bold text-white mb-3 hover:text-teal-400 transition-colors">
             {gig.title}
           </h3>
         </Link>
 
         {/* Price */}
-        <div className="text-teal-600 dark:text-teal-400 text-2xl font-bold mb-4">
+        <div className="text-teal-400 text-2xl font-bold mb-4">
           {displayPrice}
         </div>
 
         {/* Date and Location */}
-        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <div className="space-y-2 text-sm text-emerald-200/80 mb-4">
           <div className="flex items-center">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -114,12 +114,12 @@ export default function GigCard({ gig }: GigCardProps) {
         </div>
 
         {/* Organizer Info */}
-        <div className="flex items-center mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center mb-4 pb-4 border-b border-emerald-700/40">
           <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white font-semibold text-sm mr-3">
             {organizerName.charAt(0).toUpperCase()}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            By <span className="text-gray-900 dark:text-white">{organizerName}</span>
+          <div className="text-sm text-emerald-200/80">
+            By <span className="text-white">{organizerName}</span>
           </div>
         </div>
 
@@ -128,14 +128,14 @@ export default function GigCard({ gig }: GigCardProps) {
           <button
             onClick={handleApplyNow}
             disabled={isApplying}
-            className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
             {isApplying ? 'Applying...' : 'Apply Now'}
           </button>
         ) : (
           <Link
             to={`/gigs/${gig.id}`}
-            className="block w-full bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-lg font-semibold transition-colors text-center"
+            className="block w-full bg-emerald-500 hover:bg-emerald-400 text-white py-3 rounded-lg font-semibold transition-colors text-center shadow-lg"
           >
             View Details
           </Link>

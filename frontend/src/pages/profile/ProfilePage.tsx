@@ -94,77 +94,78 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">My Profile</h1>
+    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-white mb-6">My Profile</h1>
 
-      {user?.role === UserRole.MUSICIAN && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Musician Profile</h2>
-          {musicianProfile && (
-            <div className="mb-4">
-              <p className="text-sm text-gray-600">Rating: {musicianProfile.rating.toFixed(1)} ⭐</p>
-            </div>
-          )}
-          <form onSubmit={handleMusicianSubmit} className="space-y-4">
+        {user?.role === UserRole.MUSICIAN && (
+          <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
+            <h2 className="text-xl font-semibold mb-4 text-white">Musician Profile</h2>
+            {musicianProfile && (
+              <div className="mb-4">
+                <p className="text-sm text-emerald-200/80">Rating: {musicianProfile.rating.toFixed(1)} ⭐</p>
+              </div>
+            )}
+            <form onSubmit={handleMusicianSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stage Name</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">Stage Name</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={stageName}
                 onChange={(e) => setStageName(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Genres (comma-separated)</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">Genres (comma-separated)</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={genres}
                 onChange={(e) => setGenres(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">City</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Fee (₦)</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">Minimum Fee (₦)</label>
               <input
                 type="number"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={minFee}
                 onChange={(e) => setMinFee(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-emerald-100 mb-1">
                 Performance Videos (Minimum 3 required) - {performanceVideos.length}/3
               </label>
               <input
                 type="file"
                 accept="video/*"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-500 file:text-white hover:file:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 onChange={handleVideoUpload}
                 disabled={videoUploading}
               />
               {performanceVideos.length < 3 && (
-                <p className="text-red-600 text-sm mt-1">You must upload at least {3 - performanceVideos.length} more video(s)</p>
+                <p className="text-red-400 text-sm mt-1">You must upload at least {3 - performanceVideos.length} more video(s)</p>
               )}
               <div className="mt-2 space-y-2">
                 {performanceVideos.map((url, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded">
-                    <span className="text-sm text-gray-700 truncate flex-1">{url}</span>
+                  <div key={index} className="flex items-center justify-between bg-gray-800/60 p-3 rounded-lg border border-emerald-700/30">
+                    <span className="text-sm text-emerald-200/80 truncate flex-1">{url}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveVideo(index)}
-                      className="text-red-600 hover:text-red-800 text-sm ml-2"
+                      className="text-red-400 hover:text-red-300 text-sm ml-2 font-medium"
                     >
                       Remove
                     </button>
@@ -175,33 +176,33 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={updateMusician.isPending || performanceVideos.length < 3}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
             >
               {updateMusician.isPending ? 'Saving...' : 'Save Profile'}
             </button>
-          </form>
-        </div>
-      )}
+            </form>
+          </div>
+        )}
 
       {user?.role === UserRole.EVENT_OWNER && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Organizer Profile</h2>
+        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold mb-4 text-white">Organizer Profile</h2>
           <form onSubmit={handleOrganizerSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Organization Name</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">Organization Name</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Event Types (comma-separated)</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">Event Types (comma-separated)</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={eventTypes}
                 onChange={(e) => setEventTypes(e.target.value)}
               />
@@ -209,13 +210,14 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={updateOrganizer.isPending}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
             >
               {updateOrganizer.isPending ? 'Saving...' : 'Save Profile'}
             </button>
           </form>
         </div>
       )}
+      </div>
     </div>
   );
 }

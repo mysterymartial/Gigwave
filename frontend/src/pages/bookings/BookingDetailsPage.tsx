@@ -58,20 +58,32 @@ export default function BookingDetailsPage() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+          <p className="text-gray-400 mt-4">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!booking) {
-    return <div className="text-center py-8">Booking not found</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-gray-400">Booking not found</div>
+      </div>
+    );
   }
 
   const isMusician = user?.role === UserRole.MUSICIAN && user.id === booking.musicianId;
   const isOrganizer = user?.role === UserRole.EVENT_OWNER;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Booking Details</h1>
+    <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
+          <h1 className="text-3xl font-bold text-white mb-6">Booking Details</h1>
 
         <div className="mb-6">
           <BookingTimeline
@@ -84,47 +96,47 @@ export default function BookingDetailsPage() {
           />
         </div>
 
-        <div className="border-t pt-6 space-y-4">
-          <div>
-            <span className="font-medium">Accepted Amount:</span>
-            <span className="ml-2">₦{booking.acceptedAmount?.toLocaleString()}</span>
+        <div className="border-t border-emerald-700/40 pt-6 space-y-4">
+          <div className="text-emerald-200/90">
+            <span className="font-medium text-white">Accepted Amount:</span>
+            <span className="ml-2 text-teal-400">₦{booking.acceptedAmount?.toLocaleString()}</span>
           </div>
           {isOrganizer && platformFee && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <p className="text-sm text-blue-800">
+            <div className="bg-teal-500/20 border border-teal-500/40 rounded-lg p-4">
+              <p className="text-sm text-teal-200">
                 <strong>Platform Fee:</strong> A fixed fee of ₦{platformFee.platformFeeAmount.toLocaleString()} will be added to your payment.
                 <br />
                 <span className="text-xs">Total amount to be debited: ₦{(booking.acceptedAmount + platformFee.platformFeeAmount).toLocaleString()}</span>
               </p>
             </div>
           )}
-          <div>
-            <span className="font-medium">Booking Status:</span>
+          <div className="text-emerald-200/90">
+            <span className="font-medium text-white">Booking Status:</span>
             <span className="ml-2">{booking.bookingStatus}</span>
           </div>
-          <div>
-            <span className="font-medium">Payment Status:</span>
+          <div className="text-emerald-200/90">
+            <span className="font-medium text-white">Payment Status:</span>
             <span className="ml-2">{booking.paymentStatus}</span>
           </div>
         </div>
 
-        <div className="border-t pt-6 mt-6 space-y-4">
-          <div className="flex space-x-4">
+        <div className="border-t border-emerald-700/40 pt-6 mt-6 space-y-4">
+          <div className="flex flex-wrap gap-3">
             <Link
               to={`/bookings/${booking.id}/chat`}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg font-medium transition-colors"
             >
               Chat
             </Link>
             <Link
               to={`/bookings/${booking.id}/reviews`}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg font-medium transition-colors"
             >
               Reviews
             </Link>
             <Link
               to={`/bookings/${booking.id}/disputes`}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg font-medium transition-colors"
             >
               Disputes
             </Link>
@@ -134,7 +146,7 @@ export default function BookingDetailsPage() {
             <button
               onClick={handleMarkDone}
               disabled={markDone.isPending}
-              className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
             >
               {markDone.isPending ? 'Marking...' : 'Mark Performance Done'}
             </button>
@@ -146,34 +158,34 @@ export default function BookingDetailsPage() {
               <button
                 onClick={handleConfirmAndPay}
                 disabled={confirmAndPay.isPending}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="w-full bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
               >
                 {confirmAndPay.isPending ? 'Processing...' : 'Confirm & Pay'}
               </button>
             )}
 
           {booking.paymentStatus === PaymentStatus.DEBIT_PENDING && !showOtpInput && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-              <p className="text-yellow-800">Payment is being processed. Please wait...</p>
+            <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-lg p-4">
+              <p className="text-yellow-200">Payment is being processed. Please wait...</p>
             </div>
           )}
 
           {showOtpInput && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <p className="text-blue-800 mb-3">Please enter the OTP sent to your phone to complete the payment.</p>
+            <div className="bg-teal-500/20 border border-teal-500/40 rounded-lg p-4">
+              <p className="text-teal-200 mb-3">Please enter the OTP sent to your phone to complete the payment.</p>
               <div className="flex space-x-2">
                 <input
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   placeholder="Enter OTP"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+                  className="flex-1 px-4 py-2 bg-gray-800/80 border border-emerald-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                   maxLength={6}
                 />
                 <button
                   onClick={handleValidateOtp}
                   disabled={validateOtp.isPending || !otp}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-white rounded-lg disabled:opacity-50 transition-colors"
                 >
                   {validateOtp.isPending ? 'Validating...' : 'Validate'}
                 </button>
@@ -182,7 +194,7 @@ export default function BookingDetailsPage() {
                     setShowOtpInput(false);
                     setOtp('');
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 border-2 border-emerald-700/50 rounded-lg text-emerald-200 hover:bg-emerald-900/60 transition-colors"
                 >
                   Cancel
                 </button>
@@ -191,22 +203,23 @@ export default function BookingDetailsPage() {
           )}
 
           {booking.paymentStatus === PaymentStatus.DEBIT_SUCCESS && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-4">
-              <p className="text-green-800">Payment successful! Payout to musician is in progress.</p>
+            <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg p-4">
+              <p className="text-emerald-200">Payment successful! Payout to musician is in progress.</p>
             </div>
           )}
 
           {booking.paymentStatus === PaymentStatus.PAID_OUT && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-4">
-              <p className="text-green-800">Payment completed successfully!</p>
+            <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg p-4">
+              <p className="text-emerald-200">Payment completed successfully!</p>
             </div>
           )}
 
           {booking.paymentStatus === PaymentStatus.DEBIT_FAILED && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <p className="text-red-800">Payment failed. Please try again or contact support.</p>
+            <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4">
+              <p className="text-red-200">Payment failed. Please try again or contact support.</p>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

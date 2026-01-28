@@ -16,37 +16,37 @@ export default function GigListPage() {
   const { data: gigs, isLoading } = useListGigs(filters);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 py-8 transition-colors">
+    <div className="min-h-screen bg-gray-900 py-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Find Gigs</h1>
+        <h1 className="text-3xl font-bold text-white mb-6">Find Gigs</h1>
 
-        <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 p-6 rounded-xl border border-emerald-700/40 mb-6 shadow-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">City</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                className="w-full px-4 py-3 bg-gray-800/80 border border-emerald-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 placeholder="Lagos"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Min Budget (₦)</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">Min Budget (₦)</label>
               <input
                 type="number"
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                className="w-full px-4 py-3 bg-gray-800/80 border border-emerald-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 placeholder="0"
                 value={minBudget}
                 onChange={(e) => setMinBudget(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Budget (₦)</label>
+              <label className="block text-sm font-medium text-emerald-100 mb-1">Max Budget (₦)</label>
               <input
                 type="number"
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                className="w-full px-4 py-3 bg-gray-800/80 border border-emerald-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 placeholder="1000000"
                 value={maxBudget}
                 onChange={(e) => setMaxBudget(e.target.value)}
@@ -67,7 +67,7 @@ export default function GigListPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-600 dark:text-gray-400">No gigs found matching your criteria</div>
+          <div className="text-center py-12 text-gray-400">No gigs found matching your criteria</div>
         )}
       </div>
     </div>
