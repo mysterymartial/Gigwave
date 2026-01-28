@@ -28,7 +28,7 @@ This guide will help you deploy the GigWave backend to Railway.
 Railway will auto-detect Spring Boot, but verify:
 - **Root Directory**: `backend`
 - **Build Command**: `mvn clean package -DskipTests` (or Railway will auto-detect)
-- **Start Command**: `java -jar target/*.jar`
+- **Start Command**: `java -jar target/gigwave-backend-1.0.0.jar` (or use `backend/nixpacks.toml` / Railway UI)
 
 ### Step 3: Set Environment Variables
 

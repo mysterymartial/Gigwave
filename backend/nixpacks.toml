@@ -1,0 +1,4 @@
+# Override Nixpacks default "java -jar target/*jar" (glob fails at runtime).
+# Use explicit JAR so Railway can start the container.
+[start]
+cmd = "java -Dserver.port=$PORT $JAVA_OPTS -jar target/gigwave-backend-1.0.0.jar"
