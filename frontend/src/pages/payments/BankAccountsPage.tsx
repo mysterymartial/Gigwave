@@ -304,9 +304,22 @@ export default function BankAccountsPage() {
                   ? 'Authorize GigWave to debit your account for secure payments when booking musicians.'
                   : 'Authorize GigWave to pay you securely for completed gigs.'}
               </p>
-              <p className="text-emerald-200/60 mb-6 text-xs">
+              <p className="text-emerald-200/60 mb-2 text-xs">
                 Maximum transaction amount: ₦5,000
               </p>
+              <label className="block text-left text-emerald-200/80 text-sm mt-3 mb-1">
+                BVN (optional – improves verification)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={11}
+                placeholder="11-digit Bank Verification Number"
+                value={mandateBvn}
+                onChange={(e) => setMandateBvn(e.target.value.replace(/\D/g, ''))}
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-emerald-600/50 text-white placeholder-emerald-300/50 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 mb-4"
+              />
               {error && (
                 <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
                   {error}

@@ -374,10 +374,10 @@ public class OnePipeClientImpl implements OnePipeClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
 
-        // Signature: MD5(request_ref + secret_key) with no space/separator per OnePipe docs
+        // Signature: MD5(request_ref;secret_key) per OnePipe docs
         if (requestRef != null && !requestRef.isBlank()) {
             try {
-                String signature = md5Hex(requestRef + secretKey);
+                String signature = md5Hex(requestRef + ";" + secretKey);
                 headers.set("Signature", signature);
             } catch (Exception e) {
                 log.error("Error generating signature", e);

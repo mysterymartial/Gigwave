@@ -47,7 +47,7 @@ So: **wrong URL, wrong signature, wrong encryption, wrong amount format, or wron
   If BVN is provided, it is encrypted with the **same** TripleDES util and key, then Base64.
 
 - **Request signature**:  
-  `MD5(request_ref + secret_key)` with **no space and no separator** (direct concatenation) → 32-char lowercase hex in `Signature` header.
+  `MD5(request_ref;secret_key)` → 32-char lowercase hex in `Signature` header (semicolon between request_ref and secret_key, no space).
 
 - **Webhook verification**:  
   `MD5(secret_key + raw_payload_body)` compared to the webhook signature header.

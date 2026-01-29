@@ -19,10 +19,10 @@ Use these in Postman to call the same endpoints your backend uses. Replace place
 | `Authorization`  | `Bearer {{ONEPIPE_API_KEY}}` |
 | `Signature`     | `{{signature}}` (see below) |
 
-**Signature (required):** 32-character **lowercase** hex string. Per OnePipe docs there is **no space and no separator** between request_ref and secret:
+**Signature (required):** 32-character **lowercase** hex string. Per OnePipe docs: `request_ref;secret_key` (semicolon, no space).
 
-- Input: `request_ref + ONEPIPE_SECRET_KEY` (direct concatenation, no `;` and no space)  
-  Example: `REQ_1738000000000your-secret-key-here`
+- Input: `request_ref + ";" + ONEPIPE_SECRET_KEY`  
+  Example: `REQ_1738000000000;your-secret-key-here`
 - Algorithm: **MD5** of that string, then hex-encode (e.g. in Postman Pre-request Script: `CryptoJS.MD5(...).toString()` or use an online MD5 tool and paste).
 
 Use the **same** `request_ref` in the body and in the Signature input.
@@ -91,7 +91,7 @@ Use the **same** `request_ref` in the body and in the Signature input.
 | `Authorization`  | `Bearer {{ONEPIPE_API_KEY}}` |
 | `Signature`     | `{{signature}}` (same rule as create mandate) |
 
-**Signature:** `MD5(request_ref + ONEPIPE_SECRET_KEY)` with **no separator** (no space, no semicolon). 32-char lowercase hex. Use the same `request_ref` as in the body.
+**Signature:** `MD5(request_ref;ONEPIPE_SECRET_KEY)` — semicolon between request_ref and secret, no space. 32-char lowercase hex. Use the same `request_ref` as in the body.
 
 ### Body (raw JSON)
 
@@ -146,7 +146,7 @@ Use these header names and values in Postman (replace placeholders):
 ```
 Content-Type: application/json
 Authorization: Bearer YOUR_ONEPIPE_API_KEY
-Signature: <32-char lowercase hex of MD5(request_ref + YOUR_ONEPIPE_SECRET_KEY with no separator)>
+Signature: <32-char lowercase hex of MD5(request_ref;YOUR_ONEPIPE_SECRET_KEY)>
 ```
 
 Example with fake values:
@@ -163,7 +163,7 @@ Signature: a1b2c3d4e5f6789012345678901234ab
 
 - **Option A – Backend:** Add a temporary dev-only endpoint that accepts `accountNumber`, `bankCode`, and optional `requestRef`, and returns `{ "secure": "<base64>", "signature": "<hex>" }` using your `ONEPIPE_SECRET_KEY`. Use those in Postman.
 - **Option B – Script:**  
-  - **Signature:** Any MD5 tool: input `REQ_1738000000000` + your secret key with **no separator** (e.g. `REQ_1738000000000your_secret_key`), output 32-char lowercase hex.  
+  - **Signature:** Any MD5 tool: input `REQ_1738000000000;your_secret_key` (request_ref + semicolon + secret, no space), output 32-char lowercase hex.  
   - **Secure:** Use Java (e.g. `OnePipeTripleDesUtil.encrypt("0123456789;058", secretKey)`) or another language with 3DES and paste the Base64 result into the body.  
   - **BVN (optional):** Same encryption as secure: TripleDES + Base64 of the 11-digit BVN string.
 
