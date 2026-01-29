@@ -66,7 +66,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", "Inspect");
+        transaction.put("mock_mode", "Live");
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", "Creating a mandate");
         transaction.put("transaction_ref_parent", null);
@@ -189,7 +189,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", "Inspect");
+        transaction.put("mock_mode", "Live");
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", request.getNarration());
         transaction.put("transaction_ref_parent", null);
