@@ -94,9 +94,8 @@ public class OnePipeClientImpl implements OnePipeClient {
             meta.put("bvn", "");
         }
         meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
-        String consentUrl = (request.getCallbackUrl() != null && !request.getCallbackUrl().isBlank())
-                ? request.getCallbackUrl().trim() : "";
-        meta.put("customer_consent", consentUrl);
+        // customer_consent = consent document URL per OnePipe/PaywithAccount docs (image), not webhook
+        meta.put("customer_consent", DEFAULT_CUSTOMER_CONSENT_URL);
         transaction.put("meta", meta);
 
         transaction.put("details", new HashMap<String, Object>());
