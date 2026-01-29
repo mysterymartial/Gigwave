@@ -41,6 +41,7 @@ flutterwave:
   secret-key: ${FLUTTERWAVE_SECRET_KEY:}
   base-url: ${FLUTTERWAVE_BASE_URL:https://api.flutterwave.com/v3}
   enabled: ${FLUTTERWAVE_ENABLED:false}
+  verif-hash: ${FLUTTERWAVE_VERIF_HASH:} # Webhook secret hash from Flutterwave dashboard (Settings > Webhooks); required to verify payout webhooks
   transfer:
     charge: ${FLUTTERWAVE_TRANSFER_CHARGE:10} # Flutterwave charge per transfer (typically ₦10-15 in Nigeria)
 

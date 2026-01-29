@@ -52,13 +52,7 @@ public class FlutterwaveTransferClient implements TransferClient {
         payload.put("currency", "NGN");
         payload.put("reference", "TXN_" + System.currentTimeMillis());
         payload.put("callback_url", request.getCallbackUrl());
-        
-        // Beneficiary details
-        Map<String, Object> beneficiary = new HashMap<>();
-        beneficiary.put("name", request.getAccountName());
-        beneficiary.put("email", request.getEmail());
-        beneficiary.put("phone", request.getPhone());
-        payload.put("beneficiary", beneficiary);
+        payload.put("beneficiary_name", request.getAccountName() != null ? request.getAccountName() : "");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

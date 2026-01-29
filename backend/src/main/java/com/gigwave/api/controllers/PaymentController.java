@@ -8,6 +8,7 @@ import com.gigwave.infrastructure.payments.onepipe.dto.MandateResponse;
 import com.gigwave.infrastructure.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,9 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final IdempotencyRepository idempotencyRepository;
+
+    @Value("${flutterwave.verif-hash:}")
+    private String flutterwaveVerifHash;
 
     @GetMapping("/banks")
     public ResponseEntity<BankListResponse> getSupportedBanks() {
@@ -144,7 +148,9 @@ public class PaymentController {
     ) {
         boolean onePipeValid = onePipeSignature != null && !onePipeSignature.isBlank()
                 && paymentService.verifyWebhookSignature(requestBody, onePipeSignature);
-        boolean flwValid = flutterwaveHash != null && !flutterwaveHash.isBlank();
+        boolean flwValid = flutterwaveHash != null && !flutterwaveHash.isBlank()
+                && flutterwaveVerifHash != null && !flutterwaveVerifHash.isBlank()
+                && flutterwaveHash.equals(flutterwaveVerifHash);
         if (!onePipeValid && !flwValid) {
             return ResponseEntity.status(401).build(); // Require at least one valid signature
         }
