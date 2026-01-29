@@ -135,3 +135,31 @@ So structure matches your samples; main variables are **env**, **keys**, **bille
 2. **Confirm biller code**: If your contract requires it, set `ONEPIPE_BILLER_CODE` and ensure it matches the OnePipe dashboard.
 3. **Log request (dev only)**: Log the exact JSON payload and headers (mask secret) and compare with a working Postman/curl sample from OnePipe.
 4. **Ask OnePipe**: Provide them `request_ref`, timestamp, and that you get code 01 with no provider code; they can look up the request and tell you the exact validation that failed.
+
+---
+
+## 8. Inspiration from successful OnePipe subscription call (code 01 deep dive)
+
+A **successful** OnePipe call (e.g. subscription “send invoice”) uses the **same** `POST {{url}}/v2/transact` endpoint and similar structure. Comparing that to our **create mandate** helps narrow down why we still get **400 code 01**.
+
+### 8.1 What we already do correctly
+
+- **Bank account**: Yes — the bank account the user adds in Gigwave (Bank Accounts page) is the one we use for create mandate. We load it by `bankAccountId` from the frontend and use its `accountNumber`, `bankCode`, `accountName` from the DB.
+- **Full API URL for create mandate**: We call **exactly** `baseUrl` with no extra path. So if `ONEPIPE_BASE_URL` = `https://api.onepipe.io/v2/transact`, the full URL is **`https://api.onepipe.io/v2/transact`** (POST). Same endpoint as subscription; only `request_type` and body differ.
+- **request_ref in header vs body**: Yes — **each call creates one new `request_ref`** (e.g. `REQ_<timestamp>`). That **same** value is used in (1) the **body** as `request_ref` and (2) the **Signature** header: `Signature: MD5(request_ref;secret_key)`. So header and body match; that is how it’s supposed to work.
+
+### 8.2 Differences that can cause code 01 (try these)
+
+| Area | Successful subscription (image) | Our create mandate | What to try |
+|------|----------------------------------|--------------------|-------------|
+| **mock_mode** | `"inspect"` | `"Live"` | In test/sandbox, OnePipe often expects **`"inspect"`**. Using `"Live"` in test can return generic 01. **Try:** Set `onepipe.mock-mode=inspect` (or use the new config below) and retry create mandate. If it then works or returns a **specific** error, you know env/mode was the issue. |
+| **meta structure** | Subscription uses `type`, `repeat_frequency`, dates, `biller_code`. No `customer_consent`. | We send `amount`, `skip_consent`, `bvn`, `biller_code`, `customer_consent` (URL). | For **create mandate**, OnePipe’s mandate docs define the exact `meta` fields. If `customer_consent` is wrong or not allowed in test, try sending **empty string** `""` for `customer_consent` (we now support this via config). |
+| **Customer mobile_no** | Placeholder in image; real responses use Nigerian format. | We send `user.getPhone()` as-is (could be `+234...`, `080...`, `234...`). | PaywithAccount/NIBBS often expect **Nigerian format**: `2348012345678` (no `+`, no leading `0`). If we send `+234...` or `080...`, provider may return 01. **Fix:** Normalize `mobile_no` to `234...` before sending (see code change below). |
+| **provider_response_code** | Success = `"00"`. | We get code **01** (generic). | So the request is rejected **before** a specific provider code. Most likely: **mock_mode** (test vs live), **customer data** (phone format), or **meta** (biller_code / customer_consent) not matching what OnePipe expects for create mandate in your environment. |
+
+### 8.3 Summary: what to try first
+
+1. **Use `mock_mode: "inspect"` for create mandate** when testing (same as the working subscription in the image). Set env **`ONEPIPE_MOCK_MODE=inspect`** (or `onepipe.mock-mode=inspect` in `application.yml`). The code now reads this; default is `Live`.
+2. **Normalize `mobile_no`** to Nigerian format: strip `+` and leading `0`, ensure it starts with `234` (e.g. `08012345678` → `2348012345678`). **Done in code:** `OnePipeClientImpl` now normalizes `mobile_no` for both create mandate and collect.
+3. **If still 01:** Try **empty** `customer_consent` in meta for create mandate (or the exact URL OnePipe gives you for your app).
+4. **Give OnePipe support** the exact `request_ref` of a failing call (e.g. from logs) so they can tell you the exact validation that failed on their side.

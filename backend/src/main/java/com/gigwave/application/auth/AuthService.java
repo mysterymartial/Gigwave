@@ -1,8 +1,8 @@
 package com.gigwave.application.auth;
 
-import com.gigwave.api.dto.auth.AuthResponse;
-import com.gigwave.api.dto.auth.LoginRequest;
-import com.gigwave.api.dto.auth.RegisterRequest;
+import com.gigwave.api.dto.AuthResponse;
+import com.gigwave.api.dto.LoginRequest;
+import com.gigwave.api.dto.RegisterRequest;
 import com.gigwave.application.users.UserService;
 import com.gigwave.domain.users.User;
 import com.gigwave.infrastructure.security.JwtUtil;

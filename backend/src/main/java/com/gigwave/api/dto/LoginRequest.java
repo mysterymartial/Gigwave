@@ -1,4 +1,4 @@
-package com.gigwave.api.dto.auth;
+package com.gigwave.api.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.Data;
 public class LoginRequest {
     @NotBlank
     private String phone;
-    
+
     @NotBlank
     private String password;
 }

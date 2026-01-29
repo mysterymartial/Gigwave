@@ -37,6 +37,10 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.biller-code:}")
     private String billerCode;
 
+    /** mock_mode: "inspect" for test (like successful subscription); "Live" for production. Set ONEPIPE_MOCK_MODE=inspect to try. */
+    @Value("${onepipe.mock-mode:Live}")
+    private String mockMode;
+
     /** Default customer consent URL for create mandate (PaywithAccount consent template). */
     private static final String DEFAULT_CUSTOMER_CONSENT_URL = "https://paywithaccount.com/consent_template.pdf";
 
@@ -96,6 +100,9 @@ public class OnePipeClientImpl implements OnePipeClient {
         meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
         // customer_consent = consent document URL per OnePipe/PaywithAccount docs (image), not webhook
         meta.put("customer_consent", DEFAULT_CUSTOMER_CONSENT_URL);
+        // Mandate repeat: "once" with end date in format yyyy-MM-dd-HH-mm-ss (per OnePipe subscription/mandate meta)
+        meta.put("repeat_frequency", "once");
+        meta.put("repeat_end_date", "2030-04-10-08-00-00");
         transaction.put("meta", meta);
 
         transaction.put("details", new HashMap<String, Object>());
@@ -134,7 +141,8 @@ public class OnePipeClientImpl implements OnePipeClient {
 
     private String encryptSecure(String plaintext) {
         try {
-            return OnePipeTripleDesUtil.encrypt(plaintext, secretKey);
+            String secret = secretKey != null ? secretKey.trim() : "";
+            return OnePipeTripleDesUtil.encrypt(plaintext, secret);
         } catch (GeneralSecurityException e) {
             log.error("TripleDES encryption failed", e);
             throw new RuntimeException("OnePipe encryption failed: " + e.getMessage(), e);
@@ -159,6 +167,17 @@ public class OnePipeClientImpl implements OnePipeClient {
         }
         String[] parts = fullName.trim().split("\\s+", 2);
         return parts.length == 1 ? new String[]{parts[0], ""} : parts;
+    }
+
+    /** Normalize to Nigerian format 234XXXXXXXXX (no +, no leading 0). PaywithAccount/NIBBS often expect this. */
+    private String normalizeNigerianPhone(String phone) {
+        if (phone == null || phone.isBlank()) return "";
+        String s = phone.trim().replaceAll("\\s+", "");
+        if (s.startsWith("+")) s = s.substring(1);
+        if (s.startsWith("234")) return s;
+        if (s.startsWith("0")) return "234" + s.substring(1);
+        if (s.length() == 10 && s.matches("\\d{10}")) return "234" + s;
+        return s;
     }
 
     @Override
@@ -195,7 +214,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", "Live");
+        transaction.put("mock_mode", mockMode != null && !mockMode.isBlank() ? mockMode.trim() : "Live");
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", request.getNarration());
         transaction.put("transaction_ref_parent", null);
@@ -206,7 +225,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("firstname", firstname);
         customer.put("surname", surname);
         customer.put("email", request.getEmail() != null ? request.getEmail() : "");
-        customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
+        customer.put("mobile_no", normalizeNigerianPhone(request.getPhone()));
         transaction.put("customer", customer);
 
         // meta: biller_code, skip_consent, customer_consent only (match docs structure)

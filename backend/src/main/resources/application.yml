@@ -32,6 +32,8 @@ onepipe:
   secret-key: ${ONEPIPE_SECRET_KEY:your-onepipe-secret-key}
   environment: ${ONEPIPE_ENV:sandbox}
   biller-code: ${ONEPIPE_BILLER_CODE:}
+  # mock_mode: "inspect" for test/sandbox (like successful subscription call); "Live" for production
+  mock-mode: ${ONEPIPE_MOCK_MODE:Live}
 
 # Flutterwave Transfer Configuration
 # Used for transferring money to musicians after deducting platform fee and Flutterwave charges

@@ -1,10 +1,10 @@
 package com.gigwave.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gigwave.api.dto.auth.LoginRequest;
-import com.gigwave.api.dto.auth.RegisterRequest;
+import com.gigwave.api.dto.LoginRequest;
+import com.gigwave.api.dto.RegisterRequest;
 import com.gigwave.application.auth.AuthService;
-import com.gigwave.api.dto.auth.AuthResponse;
+import com.gigwave.api.dto.AuthResponse;
 import com.gigwave.domain.users.UserRole;
 import com.gigwave.infrastructure.security.JwtUtil;
 import org.junit.jupiter.api.Test;

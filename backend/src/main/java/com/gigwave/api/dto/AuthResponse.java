@@ -1,4 +1,4 @@
-package com.gigwave.api.dto.auth;
+package com.gigwave.api.dto;
 
 import com.gigwave.domain.users.UserRole;
 import lombok.AllArgsConstructor;

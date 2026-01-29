@@ -1,6 +1,6 @@
 package com.gigwave.application.users;
 
-import com.gigwave.api.dto.auth.RegisterRequest;
+import com.gigwave.api.dto.RegisterRequest;
 import com.gigwave.domain.users.User;
 import com.gigwave.infrastructure.persistence.users.UserRepository;
 import com.gigwave.domain.users.UserRole;

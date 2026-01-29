@@ -1,8 +1,8 @@
 package com.gigwave.api.controllers;
 
-import com.gigwave.api.dto.auth.AuthResponse;
-import com.gigwave.api.dto.auth.LoginRequest;
-import com.gigwave.api.dto.auth.RegisterRequest;
+import com.gigwave.api.dto.AuthResponse;
+import com.gigwave.api.dto.LoginRequest;
+import com.gigwave.api.dto.RegisterRequest;
 import com.gigwave.application.auth.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
