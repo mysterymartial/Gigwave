@@ -7,8 +7,9 @@ import java.security.GeneralSecurityException;
 import java.util.Base64;
 
 /**
- * TripleDES encryption for OnePipe v2 auth.secure and meta.bvn per API docs.
- * Uses DESede/ECB/PKCS5Padding; key from ONEPIPE_SECRET_KEY (24 bytes for 3DES).
+ * TripleDES encryption for OnePipe v2 API.
+ * Used for auth.secure ("accountNumber;bankCode") and meta.bvn.
+ * Algorithm: DESede/ECB/PKCS5Padding. Key: ONEPIPE_SECRET_KEY adjusted to 24 bytes for 3DES. Output: Base64.
  */
 public final class OnePipeTripleDesUtil {
 
@@ -19,11 +20,10 @@ public final class OnePipeTripleDesUtil {
     private OnePipeTripleDesUtil() {}
 
     /**
-     * Encrypt plaintext with TripleDES using the given secret key, then Base64-encode.
-     * Key is trimmed to 24 bytes (truncate or right-pad with zeros) for DESede.
+     * Encrypt plaintext with TripleDES and return Base64-encoded ciphertext.
      *
-     * @param plaintext value to encrypt (e.g. "accountNumber;bankCode" or BVN)
-     * @param secretKey ONEPIPE_SECRET_KEY
+     * @param plaintext value to encrypt (e.g. "1234567890;058" or BVN)
+     * @param secretKey ONEPIPE_SECRET_KEY (trimmed; resized to 24 bytes)
      * @return Base64-encoded ciphertext
      */
     public static String encrypt(String plaintext, String secretKey) throws GeneralSecurityException {
@@ -39,17 +39,17 @@ public final class OnePipeTripleDesUtil {
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
+    /** Resize key to 24 bytes: use as-is, truncate, or right-pad with zeros. */
     private static byte[] resizeKey(byte[] keyBytes) {
         if (keyBytes.length == KEY_LENGTH_3DES) {
             return keyBytes;
         }
-        if (keyBytes.length > KEY_LENGTH_3DES) {
-            byte[] out = new byte[KEY_LENGTH_3DES];
-            System.arraycopy(keyBytes, 0, out, 0, KEY_LENGTH_3DES);
-            return out;
-        }
         byte[] out = new byte[KEY_LENGTH_3DES];
-        System.arraycopy(keyBytes, 0, out, 0, keyBytes.length);
+        if (keyBytes.length > KEY_LENGTH_3DES) {
+            System.arraycopy(keyBytes, 0, out, 0, KEY_LENGTH_3DES);
+        } else {
+            System.arraycopy(keyBytes, 0, out, 0, keyBytes.length);
+        }
         return out;
     }
 }

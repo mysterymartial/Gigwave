@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * OnePipe API v2 Client Implementation.
+ * Base URL: https://api.onepipe.io/v2/transact
+ * Authentication: Authorization Bearer {api_key}, Signature MD5(request_ref;client_secret), Content-Type application/json.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -42,7 +48,7 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.biller-code:}")
     private String billerCode;
 
-    /** mock_mode: "inspect" for test (like successful subscription); "Live" for production. Set ONEPIPE_MOCK_MODE=inspect to try. */
+    /** OnePipe mock_mode: "inspect" or "Live" only (no sandbox). Set onepipe.mock-mode=inspect to try. */
     @Value("${onepipe.mock-mode:Live}")
     private String mockMode;
 
@@ -83,7 +89,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         transaction.put("mock_mode", mockMode != null && !mockMode.isBlank() ? mockMode.trim() : "Live");
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", "Creating a mandate");
-        transaction.put("transaction_ref_parent", "");
+        transaction.put("transaction_ref_parent", null);
         transaction.put("amount", 0);
 
         Map<String, Object> customer = new HashMap<>();
@@ -118,19 +124,12 @@ public class OnePipeClientImpl implements OnePipeClient {
         HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
-        if (log.isDebugEnabled()) {
-            try {
-                log.debug("OnePipe create mandate request payload: {}", OBJECT_MAPPER.writeValueAsString(payload));
-            } catch (JsonProcessingException e) {
-                log.debug("OnePipe create mandate request payload: (serialization failed)");
-            }
-            log.debug("OnePipe Signature: {}", headers.getFirst("Signature"));
-            log.debug("OnePipe Auth.secure: {}", auth.get("secure"));
-        }
+        logRequest("create mandate", requestRef, payload, headers);
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, Map.class);
             Map<String, Object> body = response.getBody();
+            log.info("OnePipe create mandate response status: {}", response.getStatusCode());
             if (body != null) {
                 Object errors = body.get("errors");
                 if (errors != null) {
@@ -146,6 +145,9 @@ public class OnePipeClientImpl implements OnePipeClient {
                         .message((String) body.getOrDefault("message", ""))
                         .build();
             }
+        } catch (HttpClientErrorException e) {
+            log.error("OnePipe create mandate HTTP error: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("OnePipe API error: " + e.getResponseBodyAsString(), e);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -262,19 +264,12 @@ public class OnePipeClientImpl implements OnePipeClient {
         HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
-        if (log.isDebugEnabled()) {
-            try {
-                log.debug("OnePipe collect request payload: {}", OBJECT_MAPPER.writeValueAsString(payload));
-            } catch (JsonProcessingException e) {
-                log.debug("OnePipe collect request payload: (serialization failed)");
-            }
-            log.debug("OnePipe Signature: {}", headers.getFirst("Signature"));
-            log.debug("OnePipe Auth.secure: {}", auth.get("secure"));
-        }
+        logRequest("collect", requestRef, payload, headers);
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, Map.class);
             Map<String, Object> body = response.getBody();
+            log.info("OnePipe collect response status: {}", response.getStatusCode());
             if (body != null) {
                 Object errors = body.get("errors");
                 if (errors != null) {
@@ -294,6 +289,9 @@ public class OnePipeClientImpl implements OnePipeClient {
                 }
                 return rb.build();
             }
+        } catch (HttpClientErrorException e) {
+            log.error("OnePipe collect HTTP error: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("OnePipe API error: " + e.getResponseBodyAsString(), e);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -456,5 +454,25 @@ public class OnePipeClientImpl implements OnePipeClient {
             hex.append(String.format("%02x", b & 0xff));
         }
         return hex.toString();
+    }
+
+    /** Log request for debugging (safe: no secret/signature value at INFO). */
+    private void logRequest(String requestType, String requestRef, Map<String, Object> payload, HttpHeaders headers) {
+        log.info("OnePipe request: type={}, request_ref={}, url={}, mock_mode={}", requestType, requestRef, baseUrl, mockMode);
+        if (log.isDebugEnabled()) {
+            try {
+                log.debug("OnePipe payload: {}", OBJECT_MAPPER.writeValueAsString(payload));
+            } catch (JsonProcessingException e) {
+                log.debug("OnePipe payload: (serialization failed)");
+            }
+            String sig = headers.getFirst("Signature");
+            log.debug("OnePipe Signature: {}", sig != null ? sig : "(none)");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auth = (Map<String, Object>) payload.get("auth");
+            if (auth != null) {
+                String secure = (String) auth.get("secure");
+                log.debug("OnePipe auth.secure length: {}", secure != null ? secure.length() : 0);
+            }
+        }
     }
 }

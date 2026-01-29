@@ -104,7 +104,7 @@ Your implementation matches this: same `request_ref` in body and Signature, corr
 
 - **What you do:** You use `ONEPIPE_BASE_URL`, `ONEPIPE_API_KEY`, `ONEPIPE_SECRET_KEY` from env.
 - **Why it could cause 01:** Using **sandbox** keys on **live** URL (or the reverse), or a base URL that doesn’t end with `/v2/transact`, can yield generic 01.
-- **Fix (recommendation):** Confirm in the OnePipe dashboard: environment (sandbox vs live), correct base URL (`https://api.onepipe.io/v2/transact` for transact), and that the keys in your env match that environment. Re-paste keys without trailing newlines/spaces.
+- **Fix (recommendation):** Confirm in the OnePipe dashboard: mode (inspect vs Live), correct base URL (`https://api.onepipe.io/v2/transact` for transact), and that the keys in your env match that environment. Re-paste keys without trailing newlines/spaces.
 
 ---
 
@@ -117,7 +117,7 @@ Your implementation matches this: same `request_ref` in body and Signature, corr
 | 3 | **C. biller_code** | Confirm with OnePipe if `biller_code` is required; if yes, set `ONEPIPE_BILLER_CODE` and send it non-empty. |
 | 4 | **D. Customer email/phone** | Ensure user has valid email and Nigerian-format phone (234...) in DB. |
 | 5 | **E. Account / bank code format** | Ensure account number 10 digits, bank code 3 digits (zero-padded), no spaces. |
-| 6 | **F. Env / URL** | Confirm base URL, API key, and secret match the same OnePipe environment; re-paste keys without newlines. |
+| 6 | **F. Env / URL** | Confirm base URL, API key, and secret match the same OnePipe mode (inspect or Live; no sandbox); re-paste keys without newlines. |
 
 ---
 

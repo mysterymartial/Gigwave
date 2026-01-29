@@ -15,6 +15,14 @@ export const usePlatformFee = () => {
   });
 };
 
+export const useMandateStatus = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: ['mandateStatus'],
+    queryFn: () => paymentApi.getMandateStatus(),
+    enabled: options?.enabled !== false,
+  });
+};
+
 export const useSetupOrganizerMandate = () => {
   return useMutation({
     mutationFn: ({

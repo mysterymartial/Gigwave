@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBankAccounts, useAddBankAccount, useSetDefaultBankAccount, useDeleteBankAccount } from '../../hooks/useBankAccounts';
-import { usePaymentBanks, useSetupOrganizerMandate, useSetupMusicianMandate } from '../../hooks/usePayments';
+import { usePaymentBanks, useSetupOrganizerMandate, useSetupMusicianMandate, useMandateStatus } from '../../hooks/usePayments';
 import { useMusicianProfile } from '../../hooks/useProfiles';
 import { useAuth } from '../../hooks/useAuth';
 import { UserRole } from '../../types';
@@ -18,6 +18,9 @@ export default function BankAccountsPage() {
   const deleteAccount = useDeleteBankAccount();
   const setupOrganizerMandate = useSetupOrganizerMandate();
   const setupMusicianMandate = useSetupMusicianMandate();
+  const { data: mandateStatus } = useMandateStatus();
+  const [searchParams] = useSearchParams();
+  const needsMandateMessage = searchParams.get('setup_mandate') === '1';
 
   const [showForm, setShowForm] = useState(false);
   const [showMandateForm, setShowMandateForm] = useState<string | null>(null); // accountId
@@ -35,16 +38,7 @@ export default function BankAccountsPage() {
     if (!isLoading && hasNoAccounts) setShowForm(true);
   }, [isLoading, hasNoAccounts]);
 
-  // Show mandate prompt after first account is added
-  useEffect(() => {
-    if (bankAccounts && bankAccounts.length === 1 && !showMandateForm && !showForm) {
-      // Small delay to let user see the account was added
-      const timer = setTimeout(() => {
-        setShowMandateForm(bankAccounts[0].id);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [bankAccounts, showMandateForm, showForm]);
+  // Do not auto-show mandate modal: user can add multiple banks and set up mandate when ready via "Set Up Mandate" per account.
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -65,16 +59,6 @@ export default function BankAccountsPage() {
           setAccountNumber('');
           setAccountName('');
           setIsPayoutDefault(false);
-          // After adding account, prompt to set up mandate
-          if (bankAccounts && bankAccounts.length === 0) {
-            // First account added - show mandate prompt
-            setTimeout(() => {
-              const newAccount = bankAccounts?.[0] || bankAccounts?.[bankAccounts.length - 1];
-              if (newAccount) {
-                setShowMandateForm(newAccount.id);
-              }
-            }, 500);
-          }
         },
         onError: (err) => {
           setError(getAuthErrorMessage(err, 'Failed to add bank account. Please try again.'));
@@ -139,6 +123,16 @@ export default function BankAccountsPage() {
             Add your bank account to continue using GigWave.
           </div>
         )}
+        {needsMandateMessage && (
+          <div className="mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+            <p className="font-semibold">Set up a mandate to continue</p>
+            <p className="text-sm mt-1">
+              {user?.role === UserRole.EVENT_OWNER
+                ? 'You need an active payment mandate to post a gig. Choose a bank account below and click "Set Up Mandate".'
+                : 'You need an active payment mandate to find and book gigs. Choose a bank account below and click "Set Up Mandate".'}
+            </p>
+          </div>
+        )}
         {!hasNoAccounts && bankAccounts && bankAccounts.length > 0 && (
           <div className="mb-6 p-4 rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-200">
             <div className="flex justify-between items-center">
@@ -154,14 +148,18 @@ export default function BankAccountsPage() {
                 {user?.role === UserRole.EVENT_OWNER ? (
                   <button
                     onClick={() => navigate('/gigs/create')}
-                    className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                    disabled={!mandateStatus?.hasActiveMandate}
+                    title={!mandateStatus?.hasActiveMandate ? 'Set up a mandate first' : undefined}
+                    className="bg-teal-500 hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition-colors"
                   >
                     Post a Gig
                   </button>
                 ) : (
                   <button
                     onClick={() => navigate('/gigs')}
-                    className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                    disabled={!mandateStatus?.hasActiveMandate}
+                    title={!mandateStatus?.hasActiveMandate ? 'Set up a mandate first' : undefined}
+                    className="bg-teal-500 hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition-colors"
                   >
                     Find Gigs
                   </button>

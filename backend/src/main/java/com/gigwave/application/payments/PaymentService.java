@@ -394,6 +394,10 @@ public class PaymentService {
         mandateRepository.save(mandate);
     }
 
+    public boolean hasActiveMandate(UUID userId) {
+        return mandateRepository.findByUserIdAndStatus(userId, MandateStatus.ACTIVE).isPresent();
+    }
+
     public BankListResponse getSupportedBanks() {
         return onePipeClient.getSupportedBanks();
     }

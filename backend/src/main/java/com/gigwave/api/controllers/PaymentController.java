@@ -42,6 +42,14 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.getPlatformFeeInfo());
     }
 
+    @GetMapping("/mandate/status")
+    public ResponseEntity<Map<String, Boolean>> getMandateStatus(@CurrentUser UUID userId) {
+        if (userId == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(Map.of("hasActiveMandate", paymentService.hasActiveMandate(userId)));
+    }
+
     @PostMapping("/mandate/setup/organizer")
     public ResponseEntity<MandateResponse> setupOrganizerMandate(
             @RequestParam UUID bankAccountId,

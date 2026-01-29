@@ -150,6 +150,10 @@ export const paymentApi = {
     );
     return response.data;
   },
+  getMandateStatus: async () => {
+    const response = await api.get<{ hasActiveMandate: boolean }>('/payments/mandate/status');
+    return response.data;
+  },
   setupOrganizerMandate: async (
     bankAccountId: string,
     maxAmount: number,

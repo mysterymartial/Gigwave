@@ -24,7 +24,7 @@ OnePipe returns a generic **code "01"** with no provider details. That usually m
 
 | Cause | What to check |
 |-------|----------------|
-| **Wrong base URL** | Production vs sandbox: `ONEPIPE_BASE_URL` must match your OnePipe dashboard (e.g. `https://api.onepipe.io/v2/transact` for live). Same URL is used for both **create mandate** and **collect**; only `request_type` changes. |
+| **Wrong base URL** | OnePipe has no sandbox; only **inspect** and **Live** mode. `ONEPIPE_BASE_URL` must match your OnePipe dashboard (e.g. `https://api.onepipe.io/v2/transact`). Same URL for both **create mandate** and **collect**; only `request_type` changes. |
 | **Signature header** | Header: `Signature: MD5(request_ref;secret_key)` as **32-char lowercase hex**. Per OnePipe docs: `request_ref` then semicolon then secret key (no space). Wrong key or wrong order will cause auth failure. |
 | **Encryption of `auth.secure`** | Must be **TripleDES (DESede/ECB/PKCS5Padding)** of `accountNumber;bankCode`, Base64-encoded. Key = `ONEPIPE_SECRET_KEY` (trimmed/padded to 24 bytes). Wrong key or algorithm → provider can’t decrypt → generic error. |
 | **Encryption of `meta.bvn`** (create mandate) | If you send BVN, it must be **TripleDES** with the same secret, Base64. Invalid/plain BVN → validation failure. |
@@ -46,7 +46,7 @@ So: **wrong URL, wrong signature, wrong encryption, wrong amount format, or wron
 | `auth.secure`: TripleDES(accountNumber;bankCBNCode, secretKey) | `securePlain = accountNumber + ";" + bankCode`, then `encryptSecure(securePlain)` | Yes |
 | `meta.bvn`: TripleDES(BVN, secretKey) | `encryptSecure(request.getBvn())` when BVN provided | Yes |
 | `meta.amount` string in kobo | `String.valueOf(maxAmountKobo)` | Yes |
-| `mock_mode` | We send `"Live"` for real transactions. Doc sample shows `"Inspect"`; OnePipe docs do not define sandbox or when to use which. | Yes |
+| `mock_mode` | OnePipe has only **inspect** and **Live** (no sandbox). We send `"Live"` by default; use `onepipe.mock-mode=inspect` to try. | Yes |
 
 If 400 persists: set **ONEPIPE_BILLER_CODE** if required; confirm **base URL** is `https://api.onepipe.io/v2/transact`; ensure **API key and secret** match your OnePipe account.
 
@@ -131,7 +131,7 @@ So structure matches your samples; main variables are **env**, **keys**, **bille
 
 ## 7. Next steps if 400 persists
 
-1. **Confirm env**: Same env for API key, secret key, and base URL (all sandbox or all live).
+1. **Confirm env**: Same mode for API key, secret key, and base URL (inspect or Live; OnePipe has no sandbox).
 2. **Confirm biller code**: If your contract requires it, set `ONEPIPE_BILLER_CODE` and ensure it matches the OnePipe dashboard.
 3. **Log request (dev only)**: Log the exact JSON payload and headers (mask secret) and compare with a working Postman/curl sample from OnePipe.
 4. **Ask OnePipe**: Provide them `request_ref`, timestamp, and that you get code 01 with no provider code; they can look up the request and tell you the exact validation that failed.
@@ -152,7 +152,7 @@ A **successful** OnePipe call (e.g. subscription “send invoice”) uses the **
 
 | Area | Successful subscription (image) | Our create mandate | What to try |
 |------|----------------------------------|--------------------|-------------|
-| **mock_mode** | `"inspect"` | `"Live"` | In test/sandbox, OnePipe often expects **`"inspect"`**. Using `"Live"` in test can return generic 01. **Try:** Set `onepipe.mock-mode=inspect` (or use the new config below) and retry create mandate. If it then works or returns a **specific** error, you know env/mode was the issue. |
+| **mock_mode** | `"inspect"` | `"Live"` | OnePipe has only **inspect** and **Live** (no sandbox). If you're testing, try `onepipe.mock-mode=inspect` and retry create mandate. If it then works or returns a **specific** error, mode was the issue. |
 | **meta structure** | Subscription uses `type`, `repeat_frequency`, dates, `biller_code`. No `customer_consent`. | We send `amount`, `skip_consent`, `bvn`, `biller_code`, `customer_consent` (URL). | For **create mandate**, OnePipe’s mandate docs define the exact `meta` fields. If `customer_consent` is wrong or not allowed in test, try sending **empty string** `""` for `customer_consent` (we now support this via config). |
 | **Customer mobile_no** | Placeholder in image; real responses use Nigerian format. | We send `user.getPhone()` as-is (could be `+234...`, `080...`, `234...`). | PaywithAccount/NIBBS often expect **Nigerian format**: `2348012345678` (no `+`, no leading `0`). If we send `+234...` or `080...`, provider may return 01. **Fix:** Normalize `mobile_no` to `234...` before sending (see code change below). |
 | **provider_response_code** | Success = `"00"`. | We get code **01** (generic). | So the request is rejected **before** a specific provider code. Most likely: **mock_mode** (test vs live), **customer data** (phone format), or **meta** (biller_code / customer_consent) not matching what OnePipe expects for create mandate in your environment. |
