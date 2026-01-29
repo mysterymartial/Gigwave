@@ -32,8 +32,10 @@ onepipe:
   secret-key: ${ONEPIPE_SECRET_KEY:your-onepipe-secret-key}
   environment: ${ONEPIPE_ENV:sandbox}
   biller-code: ${ONEPIPE_BILLER_CODE:}
-  # mock_mode: "inspect" for test/sandbox (like successful subscription call); "Live" for production
-  mock-mode: ${ONEPIPE_MOCK_MODE:Live}
+  # mock_mode: Inspect (test) or Live (production). Default Inspect to avoid code 01 in test.
+  mock-mode: ${ONEPIPE_MOCK_MODE:Inspect}
+  # encryption: ecb (default; matches many Nigerian gateways) or paywithaccount (CBC+MD5+UTF-16LE)
+  encryption: ${ONEPIPE_ENCRYPTION:ecb}
 
 # Flutterwave Transfer Configuration
 # Used for transferring money to musicians after deducting platform fee and Flutterwave charges

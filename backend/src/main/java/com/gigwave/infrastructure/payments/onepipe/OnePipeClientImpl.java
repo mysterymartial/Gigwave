@@ -52,8 +52,8 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.mock-mode:Inspect}")
     private String mockMode;
 
-    /** Encryption for secure/BVN: "paywithaccount" (CBC+MD5+UTF-16LE) or "ecb" (ECB+raw key+UTF-8). Try "ecb" if code 01 persists. */
-    @Value("${onepipe.encryption:paywithaccount}")
+    /** Encryption for secure/BVN: "ecb" (default, matches many Nigerian gateways) or "paywithaccount" (CBC+MD5+UTF-16LE). */
+    @Value("${onepipe.encryption:ecb}")
     private String encryptionMode;
 
     /** PaywithAccount consent document URL for create mandate meta.customer_consent (per OnePipe/PaywithAccount). */
@@ -72,9 +72,9 @@ public class OnePipeClientImpl implements OnePipeClient {
         String surname = nameParts.length > 1 ? nameParts[1] : "";
 
         long maxAmountKobo = request.getMaxAmount().multiply(new java.math.BigDecimal("100")).longValue();
-        // secure = TripleDES.encrypt(accountNumber;bankCode, secretKey) — per docs: no trim, no pad
-        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber() : "";
-        String bankCode = request.getBankCode() != null ? request.getBankCode() : "";
+        // secure = TripleDES.encrypt(accountNumber;bankCode) — trim to avoid env/DB spaces breaking decryption
+        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber().trim() : "";
+        String bankCode = request.getBankCode() != null ? request.getBankCode().trim() : "";
         String securePlain = accountNumber + ";" + bankCode;
         String secureEncrypted = encryptSecure(securePlain);
 
@@ -105,11 +105,9 @@ public class OnePipeClientImpl implements OnePipeClient {
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
         if (request.getBvn() != null && !request.getBvn().isBlank()) {
-            meta.put("bvn", encryptSecure(request.getBvn()));
-        } else {
-            meta.put("bvn", "");
+            meta.put("bvn", encryptSecure(request.getBvn().trim()));
         }
-        meta.put("biller_code", (billerCode != null) ? billerCode : "");
+        meta.put("biller_code", (billerCode != null) ? billerCode.trim() : "");
         meta.put("customer_consent", CUSTOMER_CONSENT_URL);
         meta.put("repeat_end_date", "2030-04-10-08-00-00");
         meta.put("repeat_frequency", "once");
@@ -166,7 +164,8 @@ public class OnePipeClientImpl implements OnePipeClient {
 
     private String encryptSecure(String plaintext) {
         try {
-            String secret = secretKey != null ? secretKey : "";
+            // Trim secret: env vars (Railway/Render/.env) often add trailing newline, breaking Signature and decryption
+            String secret = secretKey != null ? secretKey.trim() : "";
             String result = "ecb".equalsIgnoreCase(encryptionMode != null ? encryptionMode.trim() : "")
                     ? OnePipeTripleDesUtil.encryptEcb(plaintext, secret)
                     : OnePipeTripleDesUtil.encrypt(plaintext, secret);
@@ -237,9 +236,9 @@ public class OnePipeClientImpl implements OnePipeClient {
 
         long amountKobo = request.getAmount().multiply(new java.math.BigDecimal("100")).longValue();
 
-        // secure = TripleDES.encrypt(accountNumber;bankCode, secretKey) — per docs: no trim
-        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber() : "";
-        String bankCode = request.getBankCode() != null ? request.getBankCode() : "";
+        // secure = TripleDES.encrypt(accountNumber;bankCode) — trim to avoid spaces breaking decryption
+        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber().trim() : "";
+        String bankCode = request.getBankCode() != null ? request.getBankCode().trim() : "";
         String securePlain = accountNumber + ";" + bankCode;
         String secureEncrypted = encryptSecure(securePlain);
 
@@ -267,7 +266,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("mobile_no", normalizeNigerianPhone(request.getPhone()));
         transaction.put("customer", customer);
         Map<String, Object> meta = new HashMap<>();
-        meta.put("biller_code", (billerCode != null) ? billerCode : "");
+        meta.put("biller_code", (billerCode != null) ? billerCode.trim() : "");
         meta.put("skip_consent", "true");
         meta.put("customer_consent", "");
         transaction.put("meta", meta);
@@ -446,9 +445,9 @@ public class OnePipeClientImpl implements OnePipeClient {
     private HttpHeaders createHeaders(String requestRef) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String key = apiKey != null ? apiKey : "";
-        // Signature per docs: MD5(request_ref;secretKey) — no trim, no space
-        String secret = secretKey != null ? secretKey : "";
+        // Trim keys: env vars often have trailing newline, which breaks Signature and OnePipe auth
+        String key = apiKey != null ? apiKey.trim() : "";
+        String secret = secretKey != null ? secretKey.trim() : "";
         headers.set("Authorization", "Bearer " + key);
 
         if (requestRef != null && !requestRef.isBlank()) {
