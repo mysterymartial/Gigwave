@@ -296,7 +296,7 @@ public class OnePipeClientImpl implements OnePipeClient {
                 .banks(java.util.Arrays.asList(
                         BankListResponse.Bank.builder().code("058").name("Guaranty Trust Bank").build(),
                         BankListResponse.Bank.builder().code("011").name("First Bank of Nigeria").build(),
-                        BankListResponse.Bank.builder().code("014").name("Access Bank").build(),
+                        BankListResponse.Bank.builder().code("044").name("Access Bank").build(),
                         BankListResponse.Bank.builder().code("232").name("Sterling Bank").build(),
                         BankListResponse.Bank.builder().code("033").name("United Bank for Africa").build(),
                         BankListResponse.Bank.builder().code("050").name("Ecobank Nigeria").build(),
