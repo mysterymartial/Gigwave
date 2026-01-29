@@ -31,6 +31,7 @@ public class SecurityConfig {
             SecurityHeadersFilter securityHeadersFilter
     ) throws Exception {
         http
+                .cors(cors -> {}) // use CorsConfigurationSource bean so preflight OPTIONS gets CORS headers
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

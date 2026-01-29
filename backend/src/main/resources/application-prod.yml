@@ -13,6 +13,7 @@ logging:
     root: INFO
   # No file logging: Railway captures stdout; /var/log often not writable in containers
 
+# Comma-separated list. Add your Vercel frontend URL(s) on Railway: CORS_ORIGINS=https://gigwave-66jg.vercel.app,https://gigwave-66jg-git-dev-agbaosi-bolarinwa-mysterys-projects.vercel.app
 cors:
   allowed-origins: ${CORS_ORIGINS:https://gigwave.com}
 
