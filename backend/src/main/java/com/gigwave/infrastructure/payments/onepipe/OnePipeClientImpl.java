@@ -185,7 +185,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         Map<String, Object> auth = new HashMap<>();
         auth.put("type", "bank.account");
         auth.put("secure", secureEncrypted);
-        auth.put("auth_provider", "NIBSS");
+        auth.put("auth_provider", "NIBBS");
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
