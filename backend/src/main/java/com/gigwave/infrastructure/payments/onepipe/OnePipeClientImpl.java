@@ -54,7 +54,9 @@ public class OnePipeClientImpl implements OnePipeClient {
 
         long maxAmountKobo = request.getMaxAmount().multiply(new java.math.BigDecimal("100")).longValue();
         // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) per OnePipe docs
-        String securePlain = request.getAccountNumber() + ";" + request.getBankCode();
+        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber().trim() : "";
+        String bankCode = request.getBankCode() != null ? request.getBankCode().trim() : "";
+        String securePlain = accountNumber + ";" + bankCode;
         String secureEncrypted = encryptSecure(securePlain);
 
         Map<String, Object> payload = new HashMap<>();
@@ -82,15 +84,18 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
         transaction.put("customer", customer);
 
-        // meta: amount, skip_consent, bvn, biller_code, customer_consent only (no extra keys)
+        // meta: amount, skip_consent, bvn (when provided), biller_code (when set), customer_consent — match docs structure
         Map<String, Object> meta = new HashMap<>();
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
-        meta.put("bvn", (request.getBvn() != null && !request.getBvn().isBlank())
-                ? encryptSecure(request.getBvn()) : "");
-        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode : "");
+        if (request.getBvn() != null && !request.getBvn().isBlank()) {
+            meta.put("bvn", encryptSecure(request.getBvn().trim()));
+        } else {
+            meta.put("bvn", "");
+        }
+        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
         String consentUrl = (request.getCallbackUrl() != null && !request.getCallbackUrl().isBlank())
-                ? request.getCallbackUrl() : DEFAULT_CUSTOMER_CONSENT_URL;
+                ? request.getCallbackUrl().trim() : "";
         meta.put("customer_consent", consentUrl);
         transaction.put("meta", meta);
 
@@ -175,7 +180,9 @@ public class OnePipeClientImpl implements OnePipeClient {
         long amountKobo = request.getAmount().multiply(new java.math.BigDecimal("100")).longValue();
 
         // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) — same as create mandate
-        String securePlain = request.getAccountNumber() + ";" + request.getBankCode();
+        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber().trim() : "";
+        String bankCode = request.getBankCode() != null ? request.getBankCode().trim() : "";
+        String securePlain = accountNumber + ";" + bankCode;
         String secureEncrypted = encryptSecure(securePlain);
 
         Map<String, Object> payload = new HashMap<>();
@@ -205,7 +212,7 @@ public class OnePipeClientImpl implements OnePipeClient {
 
         // meta: biller_code, skip_consent, customer_consent only (match docs structure)
         Map<String, Object> meta = new HashMap<>();
-        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode : "");
+        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
         meta.put("skip_consent", "true");
         meta.put("customer_consent", "");
         transaction.put("meta", meta);
@@ -370,12 +377,15 @@ public class OnePipeClientImpl implements OnePipeClient {
     private HttpHeaders createHeaders(String requestRef) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + apiKey);
+        // Trim keys — env vars (e.g. Render/Railway) often have trailing newline, breaking Signature/auth
+        String key = apiKey != null ? apiKey.trim() : "";
+        String secret = secretKey != null ? secretKey.trim() : "";
+        headers.set("Authorization", "Bearer " + key);
 
         // Signature: MD5(request_ref;client_secret) — request_ref must match payload.request_ref
         if (requestRef != null && !requestRef.isBlank()) {
             try {
-                String signature = md5Hex(requestRef + ";" + secretKey);
+                String signature = md5Hex(requestRef + ";" + secret);
                 headers.set("Signature", signature);
             } catch (Exception e) {
                 log.error("Error generating signature", e);

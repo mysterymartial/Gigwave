@@ -50,6 +50,14 @@ So: **wrong URL, wrong signature, wrong encryption, wrong amount format, or wron
 
 If 400 persists: set **ONEPIPE_BILLER_CODE** if required; confirm **base URL** is `https://api.onepipe.io/v2/transact`; ensure **API key and secret** match your OnePipe account.
 
+**Why 400 code 01 can persist (even after OnePipe says it’s not on their side):**
+
+1. **Env vars with trailing newline** – On Render/Railway/etc., pasted `ONEPIPE_SECRET_KEY` or `ONEPIPE_API_KEY` often get a trailing `\n`. That changes the Signature (MD5(request_ref;secret)) and can break decryption. **Fix:** We now trim `apiKey` and `secretKey` when building headers and encryption.
+2. **Spaces in account/bank code** – Leading/trailing spaces in account number or bank code change `auth.secure` and cause the provider to reject. **Fix:** We trim account number and bank code before building `secure`.
+3. **Empty optional fields** – Some gateways reject `"bvn": ""` or expect `customer_consent` to be `""` when no URL. **Fix:** We send `customer_consent: ""` when no callback URL; we still send `bvn: ""` when not provided (structure unchanged). If 400 continues, try omitting `bvn` when not provided (remove key from meta).
+4. **Wrong key/URL/env** – API key or secret from a different environment (e.g. test vs live), or base URL without `/v2/transact`, still returns generic 01. Double-check dashboard vs env.
+5. **Provider-side validation** – NIBBS/PaywithAccount may reject account format, BVN format, or amount limits. OnePipe returns 01 without provider details; only OnePipe (with your `request_ref`) can confirm the exact validation that failed.
+
 ---
 
 ## 2. Encryption and hashing (what we use)
