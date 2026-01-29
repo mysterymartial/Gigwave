@@ -52,8 +52,8 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.mock-mode:Live}")
     private String mockMode;
 
-    /** Default customer consent URL for create mandate (PaywithAccount consent template). */
-    private static final String DEFAULT_CUSTOMER_CONSENT_URL = "https://paywithaccount.com/consent_template.pdf";
+    /** PaywithAccount consent document URL for create mandate meta.customer_consent (per OnePipe/PaywithAccount). */
+    private static final String CUSTOMER_CONSENT_URL = "https://paywithaccount.com/consent_template.pdf";
 
     @Override
     public MandateResponse setupMandate(MandateRequest request) {
@@ -68,7 +68,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         String surname = nameParts.length > 1 ? nameParts[1] : "";
 
         long maxAmountKobo = request.getMaxAmount().multiply(new java.math.BigDecimal("100")).longValue();
-        // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) per OnePipe docs
+        // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) — OnePipe create mandate & collect
         String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber().trim() : "";
         String bankCode = request.getBankCode() != null ? request.getBankCode().trim() : "";
         String securePlain = accountNumber + ";" + bankCode;
@@ -82,25 +82,21 @@ public class OnePipeClientImpl implements OnePipeClient {
         auth.put("type", "bank.account");
         auth.put("secure", secureEncrypted);
         auth.put("auth_provider", "PaywithAccount");
-        auth.put("route_mode", null);
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", mockMode != null && !mockMode.isBlank() ? mockMode.trim() : "Live");
+        transaction.put("mock_mode", normalizeMockMode(mockMode));
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", "Creating a mandate");
         transaction.put("transaction_ref_parent", null);
         transaction.put("amount", 0);
-
         Map<String, Object> customer = new HashMap<>();
         customer.put("customer_ref", request.getUserId() != null ? request.getUserId().toString() : "");
         customer.put("firstname", firstname);
         customer.put("surname", surname);
         customer.put("email", request.getEmail() != null ? request.getEmail() : "");
-        customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
+        customer.put("mobile_no", normalizeNigerianPhone(request.getPhone()));
         transaction.put("customer", customer);
-
-        // meta: amount, skip_consent, bvn (when provided), biller_code (when set), customer_consent — match docs structure
         Map<String, Object> meta = new HashMap<>();
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
@@ -110,13 +106,8 @@ public class OnePipeClientImpl implements OnePipeClient {
             meta.put("bvn", "");
         }
         meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
-        // customer_consent = consent document URL per OnePipe/PaywithAccount docs (image), not webhook
-        meta.put("customer_consent", DEFAULT_CUSTOMER_CONSENT_URL);
-        // Mandate repeat: "once" with end date in format yyyy-MM-dd-HH-mm-ss (per OnePipe subscription/mandate meta)
-        meta.put("repeat_frequency", "once");
-        meta.put("repeat_end_date", "2030-04-10-08-00-00");
+        meta.put("customer_consent", CUSTOMER_CONSENT_URL);
         transaction.put("meta", meta);
-
         transaction.put("details", new HashMap<String, Object>());
         payload.put("transaction", transaction);
 
@@ -191,7 +182,16 @@ public class OnePipeClientImpl implements OnePipeClient {
         return parts.length == 1 ? new String[]{parts[0], ""} : parts;
     }
 
-    /** Normalize to Nigerian format 234XXXXXXXXX (no +, no leading 0). PaywithAccount/NIBBS often expect this. */
+    /** OnePipe doc uses "Inspect" and "Live" (capital first letter). Normalize config value to match. */
+    private String normalizeMockMode(String value) {
+        if (value == null || value.isBlank()) return "Live";
+        String v = value.trim();
+        if ("inspect".equalsIgnoreCase(v)) return "Inspect";
+        if ("live".equalsIgnoreCase(v)) return "Live";
+        return v;
+    }
+
+    /** Normalize to Nigerian format 234XXXXXXXXX (no +, no leading 0). PaywithAccount/NIBSS often expect this. */
     private String normalizeNigerianPhone(String phone) {
         if (phone == null || phone.isBlank()) return "";
         String s = phone.trim().replaceAll("\\s+", "");
@@ -232,17 +232,15 @@ public class OnePipeClientImpl implements OnePipeClient {
         Map<String, Object> auth = new HashMap<>();
         auth.put("type", "bank.account");
         auth.put("secure", secureEncrypted);
-        auth.put("auth_provider", "NIBBS");
-        auth.put("route_mode", null);
+        auth.put("auth_provider", "NIBSS");
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", mockMode != null && !mockMode.isBlank() ? mockMode.trim() : "Live");
+        transaction.put("mock_mode", normalizeMockMode(mockMode));
         transaction.put("transaction_ref", transactionRef);
-        transaction.put("transaction_desc", request.getNarration());
-        transaction.put("transaction_ref_parent", "");
+        transaction.put("transaction_desc", request.getNarration() != null && !request.getNarration().isBlank() ? request.getNarration().trim() : "A nice narration");
+        transaction.put("transaction_ref_parent", null);
         transaction.put("amount", amountKobo);
-
         Map<String, Object> customer = new HashMap<>();
         customer.put("customer_ref", request.getUserId() != null ? request.getUserId().toString() : "");
         customer.put("firstname", firstname);
@@ -250,14 +248,11 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("email", request.getEmail() != null ? request.getEmail() : "");
         customer.put("mobile_no", normalizeNigerianPhone(request.getPhone()));
         transaction.put("customer", customer);
-
-        // meta: biller_code, skip_consent, customer_consent only (match docs structure)
         Map<String, Object> meta = new HashMap<>();
         meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
         meta.put("skip_consent", "true");
         meta.put("customer_consent", "");
         transaction.put("meta", meta);
-
         transaction.put("details", new HashMap<String, Object>());
         payload.put("transaction", transaction);
 
