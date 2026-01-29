@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '../lib/api';
-import type { Customer, AdminDebitRequest, AdminDebitResponse } from '../types';
+import type { AdminDebitRequest } from '../types';
 
 export const useAllCustomers = () => {
   return useQuery({

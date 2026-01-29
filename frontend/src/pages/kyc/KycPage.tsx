@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { useKycDocuments, useKycStatus, useUploadKycDocument } from '../../hooks/useKyc';
+import { useKycDocuments, useKycStatus } from '../../hooks/useKyc';
+import { useUploadKycDocument } from '../../hooks/useFiles';
 import { KycStatus } from '../../types';
 
 export default function KycPage() {

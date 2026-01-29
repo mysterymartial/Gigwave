@@ -1,6 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
 import { fileApi } from '../lib/api';
-import type { KycDocument } from '../types';
 
 export const useUploadChatMedia = () => {
   return useMutation({

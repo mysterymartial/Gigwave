@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { accountReportApi } from '../lib/api';
-import type { AccountReport, ReportStatus } from '../types';
+import type { ReportStatus } from '../types';
 
 export const useMyReports = () => {
   return useQuery({

@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDisputesForBooking, useCreateDispute } from '../../hooks/useDisputes';
-import { useUploadDisputeEvidence } from '../../hooks/useFiles';
 import { useAuth } from '../../hooks/useAuth';
 import { format } from 'date-fns';
 
@@ -11,7 +10,6 @@ export default function DisputesPage() {
   const { user } = useAuth();
   const { data: disputes } = useDisputesForBooking(bookingId);
   const createDispute = useCreateDispute();
-  const uploadEvidence = useUploadDisputeEvidence();
 
   const [reason, setReason] = useState('');
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
@@ -36,6 +34,7 @@ export default function DisputesPage() {
       raisedBy: user.id,
       reason,
       evidenceUrl: evidenceUrl || undefined,
+      status: 'OPEN',
     });
     setReason('');
     setEvidenceFile(null);

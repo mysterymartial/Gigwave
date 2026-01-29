@@ -56,6 +56,7 @@ export interface Booking {
   id: string;
   gigId: string;
   musicianId: string;
+  organizerId?: string;
   organizerMandateId?: string;
   bookingStatus: BookingStatus;
   paymentStatus: PaymentStatus;

@@ -33,12 +33,14 @@ export function getAuthErrorMessage(
     }
 
     // Generic by status (only if no specific message was found above)
-    if (status === 401) return 'Invalid email/phone or password.';
-    if (status === 403) return 'Access denied.';
-    if (status === 502) return 'Payment service error. Please try again later.';
-    if (status === 503) return 'Service temporarily unavailable. Please try again later.';
-    if (status >= 500) return 'Server error. Please try again later.';
-    if (status >= 400) return 'Invalid request. Check your input.';
+    if (status !== undefined) {
+      if (status === 401) return 'Invalid email/phone or password.';
+      if (status === 403) return 'Access denied.';
+      if (status === 502) return 'Payment service error. Please try again later.';
+      if (status === 503) return 'Service temporarily unavailable. Please try again later.';
+      if (status >= 500) return 'Server error. Please try again later.';
+      if (status >= 400) return 'Invalid request. Check your input.';
+    }
   }
 
   // Network / no response

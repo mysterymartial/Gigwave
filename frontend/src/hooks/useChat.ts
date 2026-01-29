@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '../lib/api';
-import type { ChatMessage, ChatThread } from '../types';
+import type { ChatMessage } from '../types';
 
 export const useChatThread = (bookingId: string) => {
   return useQuery({

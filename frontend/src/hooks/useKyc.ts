@@ -73,5 +73,6 @@ export const useUpdateKycStatus = () => {
   });
 };
 
+export type { KycStatus };
 
 

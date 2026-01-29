@@ -20,6 +20,7 @@ public class BookingDto {
     private UUID id;
     private UUID gigId;
     private UUID musicianId;
+    private UUID organizerId;
     private UUID organizerMandateId;
     private BookingStatus bookingStatus;
     private PaymentStatus paymentStatus;

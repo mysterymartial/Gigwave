@@ -28,7 +28,7 @@ export const useGetDispute = (disputeId: string) => {
 export const useCreateDispute = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Omit<Dispute, 'id' | 'createdAt' | 'resolvedAt' | 'status'>) => disputeApi.create(data),
+    mutationFn: (data: Omit<Dispute, 'id' | 'createdAt' | 'resolvedAt'>) => disputeApi.create(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['disputes', 'booking', variables.bookingId] });
       queryClient.invalidateQueries({ queryKey: ['myDisputes'] });

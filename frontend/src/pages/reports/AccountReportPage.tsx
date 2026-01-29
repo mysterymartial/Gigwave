@@ -6,13 +6,13 @@ import { useAuth } from '../../hooks/useAuth';
 
 export default function AccountReportPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  useAuth(); // auth context
   const createReport = useCreateReport();
   const uploadEvidence = useUploadReportEvidence();
 
   const [reportedUserId, setReportedUserId] = useState('');
   const [reason, setReason] = useState('');
-  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [, setEvidenceFile] = useState<File | null>(null);
   const [evidenceUrl, setEvidenceUrl] = useState<string>('');
 
   const handleEvidenceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +22,7 @@ export default function AccountReportPage() {
     try {
       const result = await uploadEvidence.mutateAsync(file);
       setEvidenceUrl(result.url);
-      setEvidenceFile(null);
+      setEvidenceFile(null as File | null);
     } catch (error) {
       console.error('Failed to upload evidence', error);
       alert('Failed to upload evidence');

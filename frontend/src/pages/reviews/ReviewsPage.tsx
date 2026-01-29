@@ -20,7 +20,10 @@ export default function ReviewsPage() {
     if (!booking || !user) return;
 
     const reviewedUserId =
-      user.id === booking.musicianId ? booking.organizerId : booking.musicianId;
+      user.id === booking.musicianId
+        ? (booking.organizerId ?? '')
+        : booking.musicianId;
+    if (!reviewedUserId) return;
 
     await createReview.mutateAsync({
       bookingId: booking.id,

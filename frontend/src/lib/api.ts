@@ -296,7 +296,7 @@ export const reviewApi = {
 
 // Dispute API
 export const disputeApi = {
-  create: async (data: Omit<Dispute, 'id' | 'createdAt' | 'resolvedAt' | 'status'>) => {
+  create: async (data: Omit<Dispute, 'id' | 'createdAt' | 'resolvedAt'>) => {
     const response = await api.post<Dispute>('/disputes', data);
     return response.data;
   },

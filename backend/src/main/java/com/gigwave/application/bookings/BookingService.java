@@ -169,10 +169,12 @@ public class BookingService {
     }
 
     private BookingDto toDto(Booking booking) {
+        Gig gig = gigRepository.findById(booking.getGigId()).orElse(null);
         return BookingDto.builder()
                 .id(booking.getId())
                 .gigId(booking.getGigId())
                 .musicianId(booking.getMusicianId())
+                .organizerId(gig != null ? gig.getOrganizerId() : null)
                 .organizerMandateId(booking.getOrganizerMandateId())
                 .bookingStatus(booking.getBookingStatus())
                 .paymentStatus(booking.getPaymentStatus())
