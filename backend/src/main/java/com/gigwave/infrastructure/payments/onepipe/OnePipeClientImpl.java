@@ -9,6 +9,9 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -20,6 +23,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class OnePipeClientImpl implements OnePipeClient {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final RestTemplate restTemplate;
 
     @Value("${onepipe.base-url}")
@@ -71,13 +76,14 @@ public class OnePipeClientImpl implements OnePipeClient {
         auth.put("type", "bank.account");
         auth.put("secure", secureEncrypted);
         auth.put("auth_provider", "PaywithAccount");
+        auth.put("route_mode", null);
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("mock_mode", "Live");
+        transaction.put("mock_mode", mockMode != null && !mockMode.isBlank() ? mockMode.trim() : "Live");
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", "Creating a mandate");
-        transaction.put("transaction_ref_parent", null);
+        transaction.put("transaction_ref_parent", "");
         transaction.put("amount", 0);
 
         Map<String, Object> customer = new HashMap<>();
@@ -112,6 +118,16 @@ public class OnePipeClientImpl implements OnePipeClient {
         HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
+        if (log.isDebugEnabled()) {
+            try {
+                log.debug("OnePipe create mandate request payload: {}", OBJECT_MAPPER.writeValueAsString(payload));
+            } catch (JsonProcessingException e) {
+                log.debug("OnePipe create mandate request payload: (serialization failed)");
+            }
+            log.debug("OnePipe Signature: {}", headers.getFirst("Signature"));
+            log.debug("OnePipe Auth.secure: {}", auth.get("secure"));
+        }
+
         try {
             ResponseEntity<Map> response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, Map.class);
             Map<String, Object> body = response.getBody();
@@ -142,7 +158,11 @@ public class OnePipeClientImpl implements OnePipeClient {
     private String encryptSecure(String plaintext) {
         try {
             String secret = secretKey != null ? secretKey.trim() : "";
-            return OnePipeTripleDesUtil.encrypt(plaintext, secret);
+            String result = OnePipeTripleDesUtil.encrypt(plaintext, secret);
+            if (log.isDebugEnabled()) {
+                log.debug("OnePipe TripleDES: plaintext length={}, result Base64 length={}", plaintext != null ? plaintext.length() : 0, result != null ? result.length() : 0);
+            }
+            return result;
         } catch (GeneralSecurityException e) {
             log.error("TripleDES encryption failed", e);
             throw new RuntimeException("OnePipe encryption failed: " + e.getMessage(), e);
@@ -211,13 +231,14 @@ public class OnePipeClientImpl implements OnePipeClient {
         auth.put("type", "bank.account");
         auth.put("secure", secureEncrypted);
         auth.put("auth_provider", "NIBBS");
+        auth.put("route_mode", null);
         payload.put("auth", auth);
 
         Map<String, Object> transaction = new HashMap<>();
         transaction.put("mock_mode", mockMode != null && !mockMode.isBlank() ? mockMode.trim() : "Live");
         transaction.put("transaction_ref", transactionRef);
         transaction.put("transaction_desc", request.getNarration());
-        transaction.put("transaction_ref_parent", null);
+        transaction.put("transaction_ref_parent", "");
         transaction.put("amount", amountKobo);
 
         Map<String, Object> customer = new HashMap<>();
@@ -240,6 +261,16 @@ public class OnePipeClientImpl implements OnePipeClient {
 
         HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+
+        if (log.isDebugEnabled()) {
+            try {
+                log.debug("OnePipe collect request payload: {}", OBJECT_MAPPER.writeValueAsString(payload));
+            } catch (JsonProcessingException e) {
+                log.debug("OnePipe collect request payload: (serialization failed)");
+            }
+            log.debug("OnePipe Signature: {}", headers.getFirst("Signature"));
+            log.debug("OnePipe Auth.secure: {}", auth.get("secure"));
+        }
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, Map.class);
@@ -405,6 +436,9 @@ public class OnePipeClientImpl implements OnePipeClient {
             try {
                 String signature = md5Hex(requestRef + ";" + secret);
                 headers.set("Signature", signature);
+                if (log.isDebugEnabled()) {
+                    log.debug("OnePipe Signature generated: request_ref={}, secret trimmed length={}, signature={}", requestRef, secret.length(), signature);
+                }
             } catch (Exception e) {
                 log.error("Error generating signature", e);
             }
