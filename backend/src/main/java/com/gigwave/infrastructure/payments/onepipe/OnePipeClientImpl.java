@@ -44,6 +44,7 @@ public class OnePipeClientImpl implements OnePipeClient {
     public MandateResponse setupMandate(MandateRequest request) {
         log.info("Setting up mandate for account: {}", request.getAccountNumber());
 
+        // Same request_ref must appear in body and in Signature header (MD5(request_ref;secret_key))
         String requestRef = "REQ_" + System.currentTimeMillis();
         String transactionRef = "TXN_" + System.currentTimeMillis();
 
@@ -52,6 +53,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         String surname = nameParts.length > 1 ? nameParts[1] : "";
 
         long maxAmountKobo = request.getMaxAmount().multiply(new java.math.BigDecimal("100")).longValue();
+        // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) per OnePipe docs
         String securePlain = request.getAccountNumber() + ";" + request.getBankCode();
         String secureEncrypted = encryptSecure(securePlain);
 
@@ -83,7 +85,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         Map<String, Object> meta = new HashMap<>();
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
-        // BVN per OnePipe docs: same encryption as auth.secure (TripleDES + Base64)
+        // bvn = TripleDES.encrypt("{BVN}", secretKey) per OnePipe docs (same secretKey as auth.secure)
         if (request.getBvn() != null && !request.getBvn().isBlank()) {
             meta.put("bvn", encryptSecure(request.getBvn()));
         }
@@ -100,6 +102,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         transaction.put("details", new HashMap<String, Object>());
         payload.put("transaction", transaction);
 
+        // Signature uses same request_ref as payload.request_ref: MD5(request_ref;client_secret)
         HttpHeaders headers = createHeaders(requestRef);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
@@ -176,6 +179,7 @@ public class OnePipeClientImpl implements OnePipeClient {
 
         long amountKobo = request.getAmount().multiply(new java.math.BigDecimal("100")).longValue();
 
+        // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) — same as create mandate
         String securePlain = request.getAccountNumber() + ";" + request.getBankCode();
         String secureEncrypted = encryptSecure(securePlain);
 
@@ -374,7 +378,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
 
-        // Signature: MD5(request_ref;secret_key) per OnePipe docs
+        // Signature: MD5(request_ref;client_secret) — request_ref must match payload.request_ref
         if (requestRef != null && !requestRef.isBlank()) {
             try {
                 String signature = md5Hex(requestRef + ";" + secretKey);
