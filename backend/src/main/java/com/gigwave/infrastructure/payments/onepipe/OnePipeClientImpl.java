@@ -68,9 +68,9 @@ public class OnePipeClientImpl implements OnePipeClient {
         String surname = nameParts.length > 1 ? nameParts[1] : "";
 
         long maxAmountKobo = request.getMaxAmount().multiply(new java.math.BigDecimal("100")).longValue();
-        // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) — OnePipe create mandate & collect
-        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber().trim() : "";
-        String bankCode = request.getBankCode() != null ? request.getBankCode().trim() : "";
+        // secure = TripleDES.encrypt(accountNumber;bankCode, secretKey) — per docs: no trim, no pad
+        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber() : "";
+        String bankCode = request.getBankCode() != null ? request.getBankCode() : "";
         String securePlain = accountNumber + ";" + bankCode;
         String secureEncrypted = encryptSecure(securePlain);
 
@@ -101,12 +101,14 @@ public class OnePipeClientImpl implements OnePipeClient {
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
         if (request.getBvn() != null && !request.getBvn().isBlank()) {
-            meta.put("bvn", encryptSecure(request.getBvn().trim()));
+            meta.put("bvn", encryptSecure(request.getBvn()));
         } else {
             meta.put("bvn", "");
         }
-        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
+        meta.put("biller_code", (billerCode != null) ? billerCode : "");
         meta.put("customer_consent", CUSTOMER_CONSENT_URL);
+        meta.put("repeat_end_date", "2030-04-10-08-00-00");
+        meta.put("repeat_frequency", "once");
         transaction.put("meta", meta);
         transaction.put("details", new HashMap<String, Object>());
         payload.put("transaction", transaction);
@@ -150,7 +152,7 @@ public class OnePipeClientImpl implements OnePipeClient {
 
     private String encryptSecure(String plaintext) {
         try {
-            String secret = secretKey != null ? secretKey.trim() : "";
+            String secret = secretKey != null ? secretKey : "";
             String result = OnePipeTripleDesUtil.encrypt(plaintext, secret);
             if (log.isDebugEnabled()) {
                 log.debug("OnePipe TripleDES: plaintext length={}, result Base64 length={}", plaintext != null ? plaintext.length() : 0, result != null ? result.length() : 0);
@@ -219,9 +221,9 @@ public class OnePipeClientImpl implements OnePipeClient {
 
         long amountKobo = request.getAmount().multiply(new java.math.BigDecimal("100")).longValue();
 
-        // secure = TripleDES.encrypt("{accountNumber};{bankCBNCode}", secretKey) — same as create mandate
-        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber().trim() : "";
-        String bankCode = request.getBankCode() != null ? request.getBankCode().trim() : "";
+        // secure = TripleDES.encrypt(accountNumber;bankCode, secretKey) — per docs: no trim
+        String accountNumber = request.getAccountNumber() != null ? request.getAccountNumber() : "";
+        String bankCode = request.getBankCode() != null ? request.getBankCode() : "";
         String securePlain = accountNumber + ";" + bankCode;
         String secureEncrypted = encryptSecure(securePlain);
 
@@ -249,7 +251,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("mobile_no", normalizeNigerianPhone(request.getPhone()));
         transaction.put("customer", customer);
         Map<String, Object> meta = new HashMap<>();
-        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode.trim() : "");
+        meta.put("biller_code", (billerCode != null) ? billerCode : "");
         meta.put("skip_consent", "true");
         meta.put("customer_consent", "");
         transaction.put("meta", meta);
@@ -419,18 +421,17 @@ public class OnePipeClientImpl implements OnePipeClient {
     private HttpHeaders createHeaders(String requestRef) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        // Trim keys — env vars (e.g. Render/Railway) often have trailing newline, breaking Signature/auth
-        String key = apiKey != null ? apiKey.trim() : "";
-        String secret = secretKey != null ? secretKey.trim() : "";
+        String key = apiKey != null ? apiKey : "";
+        // Signature per docs: MD5(request_ref;secretKey) — no trim, no space
+        String secret = secretKey != null ? secretKey : "";
         headers.set("Authorization", "Bearer " + key);
 
-        // Signature: MD5(request_ref;client_secret) — request_ref must match payload.request_ref
         if (requestRef != null && !requestRef.isBlank()) {
             try {
                 String signature = md5Hex(requestRef + ";" + secret);
                 headers.set("Signature", signature);
                 if (log.isDebugEnabled()) {
-                    log.debug("OnePipe Signature generated: request_ref={}, secret trimmed length={}, signature={}", requestRef, secret.length(), signature);
+                    log.debug("OnePipe Signature: request_ref={}, secret length={}, signature={}", requestRef, secret.length(), signature);
                 }
             } catch (Exception e) {
                 log.error("Error generating signature", e);
