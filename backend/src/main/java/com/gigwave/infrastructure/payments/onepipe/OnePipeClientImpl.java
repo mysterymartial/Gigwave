@@ -48,9 +48,13 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.biller-code:}")
     private String billerCode;
 
-    /** OnePipe mock_mode: "inspect" or "Live" only (no sandbox). Set onepipe.mock-mode=inspect to try. */
-    @Value("${onepipe.mock-mode:Live}")
+    /** OnePipe mock_mode: "Inspect" or "Live". Default Inspect for testing; set onepipe.mock-mode=Live for production. */
+    @Value("${onepipe.mock-mode:Inspect}")
     private String mockMode;
+
+    /** Encryption for secure/BVN: "paywithaccount" (CBC+MD5+UTF-16LE) or "ecb" (ECB+raw key+UTF-8). Try "ecb" if code 01 persists. */
+    @Value("${onepipe.encryption:paywithaccount}")
+    private String encryptionMode;
 
     /** PaywithAccount consent document URL for create mandate meta.customer_consent (per OnePipe/PaywithAccount). */
     private static final String CUSTOMER_CONSENT_URL = "https://paywithaccount.com/consent_template.pdf";
@@ -124,6 +128,16 @@ public class OnePipeClientImpl implements OnePipeClient {
             Map<String, Object> body = response.getBody();
             log.info("OnePipe create mandate response status: {}", response.getStatusCode());
             if (body != null) {
+                // OnePipe can return status "Failed" with errors in body.errors or body.data.errors
+                if ("Failed".equals(body.get("status"))) {
+                    Object errors = body.get("errors");
+                    if (errors == null && body.get("data") instanceof Map) {
+                        errors = ((Map<?, ?>) body.get("data")).get("errors");
+                    }
+                    String errorMessage = errors != null ? extractErrorMessage(errors) : "Error occurred while processing request";
+                    log.error("OnePipe create mandate error: {}", errorMessage);
+                    throw new RuntimeException("OnePipe mandate setup failed: " + errorMessage);
+                }
                 Object errors = body.get("errors");
                 if (errors != null) {
                     String errorMessage = extractErrorMessage(errors);
@@ -153,9 +167,11 @@ public class OnePipeClientImpl implements OnePipeClient {
     private String encryptSecure(String plaintext) {
         try {
             String secret = secretKey != null ? secretKey : "";
-            String result = OnePipeTripleDesUtil.encrypt(plaintext, secret);
+            String result = "ecb".equalsIgnoreCase(encryptionMode != null ? encryptionMode.trim() : "")
+                    ? OnePipeTripleDesUtil.encryptEcb(plaintext, secret)
+                    : OnePipeTripleDesUtil.encrypt(plaintext, secret);
             if (log.isDebugEnabled()) {
-                log.debug("OnePipe TripleDES: plaintext length={}, result Base64 length={}", plaintext != null ? plaintext.length() : 0, result != null ? result.length() : 0);
+                log.debug("OnePipe TripleDES: mode={}, plaintext length={}, result Base64 length={}", encryptionMode, plaintext != null ? plaintext.length() : 0, result != null ? result.length() : 0);
             }
             return result;
         } catch (GeneralSecurityException e) {
@@ -268,6 +284,15 @@ public class OnePipeClientImpl implements OnePipeClient {
             Map<String, Object> body = response.getBody();
             log.info("OnePipe collect response status: {}", response.getStatusCode());
             if (body != null) {
+                if ("Failed".equals(body.get("status"))) {
+                    Object errors = body.get("errors");
+                    if (errors == null && body.get("data") instanceof Map) {
+                        errors = ((Map<?, ?>) body.get("data")).get("errors");
+                    }
+                    String errorMessage = errors != null ? extractErrorMessage(errors) : "Error occurred while processing request";
+                    log.error("OnePipe collect error: {}", errorMessage);
+                    throw new RuntimeException("OnePipe collect failed: " + errorMessage);
+                }
                 Object errors = body.get("errors");
                 if (errors != null) {
                     String errorMessage = extractErrorMessage(errors);
