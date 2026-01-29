@@ -37,6 +37,9 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.biller-code:}")
     private String billerCode;
 
+    /** Default customer consent URL for create mandate (PaywithAccount consent template). */
+    private static final String DEFAULT_CUSTOMER_CONSENT_URL = "https://paywithaccount.com/consent_template.pdf";
+
     @Override
     public MandateResponse setupMandate(MandateRequest request) {
         log.info("Setting up mandate for account: {}", request.getAccountNumber());
@@ -86,7 +89,10 @@ public class OnePipeClientImpl implements OnePipeClient {
         if (billerCode != null && !billerCode.isBlank()) {
             meta.put("biller_code", billerCode);
         }
-        meta.put("customer_consent", request.getCallbackUrl() != null ? request.getCallbackUrl() : "");
+        String consentUrl = (request.getCallbackUrl() != null && !request.getCallbackUrl().isBlank())
+                ? request.getCallbackUrl()
+                : DEFAULT_CUSTOMER_CONSENT_URL;
+        meta.put("customer_consent", consentUrl);
         meta.put("activation_method", "transfer");
         transaction.put("meta", meta);
 

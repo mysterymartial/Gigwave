@@ -9,6 +9,7 @@ import com.gigwave.domain.gigs.Gig;
 import com.gigwave.infrastructure.persistence.gigs.GigRepository;
 import com.gigwave.domain.gigs.GigStatus;
 import com.gigwave.application.notifications.NotificationService;
+import com.gigwave.infrastructure.persistence.users.MusicianProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final GigRepository gigRepository;
     private final NotificationService notificationService;
+    private final MusicianProfileRepository musicianProfileRepository;
 
     @Transactional
     public BookingDto musicianAcceptsGig(UUID gigId, UUID musicianId, BigDecimal acceptedAmount) {
@@ -33,6 +35,17 @@ public class BookingService {
 
         if (gig.getStatus() != GigStatus.OPEN) {
             throw new IllegalStateException("Gig is not open for booking");
+        }
+
+        // Musician must have at least 3 performance videos to accept a gig
+        var profileOpt = musicianProfileRepository.findByUserId(musicianId);
+        if (profileOpt.isEmpty()) {
+            throw new IllegalArgumentException("Upload at least 3 performance videos in your profile before accepting a gig");
+        }
+        var profile = profileOpt.get();
+        var videos = profile.getPerformanceVideoUrls();
+        if (videos == null || videos.size() < 3) {
+            throw new IllegalArgumentException("Upload at least 3 performance videos in your profile before accepting a gig");
         }
 
         Booking booking = Booking.builder()

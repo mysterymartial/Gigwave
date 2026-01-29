@@ -62,7 +62,7 @@ export default function BookingDetailsPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
-          <p className="text-gray-400 mt-4">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-4">Loading...</p>
         </div>
       </div>
     );
@@ -71,7 +71,7 @@ export default function BookingDetailsPage() {
   if (!booking) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center text-gray-400">Booking not found</div>
+        <div className="text-center text-gray-700 dark:text-gray-400">Booking not found</div>
       </div>
     );
   }
@@ -82,8 +82,8 @@ export default function BookingDetailsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
-          <h1 className="text-3xl font-bold text-white mb-6">Booking Details</h1>
+        <div className="bg-white dark:bg-emerald-900/50 rounded-2xl border border-gray-200 dark:border-emerald-700/40 p-8 shadow-xl">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Booking Details</h1>
 
         <div className="mb-6">
           <BookingTimeline
@@ -96,31 +96,31 @@ export default function BookingDetailsPage() {
           />
         </div>
 
-        <div className="border-t border-emerald-700/40 pt-6 space-y-4">
-          <div className="text-emerald-200/90">
-            <span className="font-medium text-white">Accepted Amount:</span>
-            <span className="ml-2 text-teal-400">₦{booking.acceptedAmount?.toLocaleString()}</span>
+        <div className="border-t border-gray-200 dark:border-emerald-700/40 pt-6 space-y-4">
+          <div className="text-gray-700 dark:text-emerald-200/90">
+            <span className="font-medium text-gray-900 dark:text-white">Accepted Amount:</span>
+            <span className="ml-2 text-teal-600 dark:text-teal-400">₦{booking.acceptedAmount?.toLocaleString()}</span>
           </div>
           {isOrganizer && platformFee && (
-            <div className="bg-teal-500/20 border border-teal-500/40 rounded-lg p-4">
-              <p className="text-sm text-teal-200">
+            <div className="bg-teal-50 dark:bg-teal-500/20 border border-teal-200 dark:border-teal-500/40 rounded-lg p-4">
+              <p className="text-sm text-teal-800 dark:text-teal-200">
                 <strong>Platform Fee:</strong> A fixed fee of ₦{platformFee.platformFeeAmount.toLocaleString()} will be added to your payment.
                 <br />
                 <span className="text-xs">Total amount to be debited: ₦{(booking.acceptedAmount + platformFee.platformFeeAmount).toLocaleString()}</span>
               </p>
             </div>
           )}
-          <div className="text-emerald-200/90">
-            <span className="font-medium text-white">Booking Status:</span>
+          <div className="text-gray-700 dark:text-emerald-200/90">
+            <span className="font-medium text-gray-900 dark:text-white">Booking Status:</span>
             <span className="ml-2">{booking.bookingStatus}</span>
           </div>
-          <div className="text-emerald-200/90">
-            <span className="font-medium text-white">Payment Status:</span>
+          <div className="text-gray-700 dark:text-emerald-200/90">
+            <span className="font-medium text-gray-900 dark:text-white">Payment Status:</span>
             <span className="ml-2">{booking.paymentStatus}</span>
           </div>
         </div>
 
-        <div className="border-t border-emerald-700/40 pt-6 mt-6 space-y-4">
+        <div className="border-t border-gray-200 dark:border-emerald-700/40 pt-6 mt-6 space-y-4">
           <div className="flex flex-wrap gap-3">
             <Link
               to={`/bookings/${booking.id}/chat`}
@@ -165,21 +165,21 @@ export default function BookingDetailsPage() {
             )}
 
           {booking.paymentStatus === PaymentStatus.DEBIT_PENDING && !showOtpInput && (
-            <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-lg p-4">
-              <p className="text-yellow-200">Payment is being processed. Please wait...</p>
+            <div className="bg-yellow-50 dark:bg-yellow-500/20 border border-yellow-200 dark:border-yellow-500/40 rounded-lg p-4">
+              <p className="text-yellow-800 dark:text-yellow-200">Payment is being processed. Please wait...</p>
             </div>
           )}
 
           {showOtpInput && (
-            <div className="bg-teal-500/20 border border-teal-500/40 rounded-lg p-4">
-              <p className="text-teal-200 mb-3">Please enter the OTP sent to your phone to complete the payment.</p>
+            <div className="bg-teal-50 dark:bg-teal-500/20 border border-teal-200 dark:border-teal-500/40 rounded-lg p-4">
+              <p className="text-teal-800 dark:text-teal-200 mb-3">Please enter the OTP sent to your phone to complete the payment.</p>
               <div className="flex space-x-2">
                 <input
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   placeholder="Enter OTP"
-                  className="flex-1 px-4 py-2 bg-gray-800/80 border border-emerald-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  className="flex-1 px-4 py-2 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-emerald-700/50 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                   maxLength={6}
                 />
                 <button
@@ -194,7 +194,7 @@ export default function BookingDetailsPage() {
                     setShowOtpInput(false);
                     setOtp('');
                   }}
-                  className="px-4 py-2 border-2 border-emerald-700/50 rounded-lg text-emerald-200 hover:bg-emerald-900/60 transition-colors"
+                  className="px-4 py-2 border-2 border-gray-300 dark:border-emerald-700/50 rounded-lg text-gray-700 dark:text-emerald-200 hover:bg-gray-100 dark:hover:bg-emerald-900/60 transition-colors"
                 >
                   Cancel
                 </button>
@@ -203,20 +203,20 @@ export default function BookingDetailsPage() {
           )}
 
           {booking.paymentStatus === PaymentStatus.DEBIT_SUCCESS && (
-            <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg p-4">
-              <p className="text-emerald-200">Payment successful! Payout to musician is in progress.</p>
+            <div className="bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/40 rounded-lg p-4">
+              <p className="text-emerald-800 dark:text-emerald-200">Payment successful! Payout to musician is in progress.</p>
             </div>
           )}
 
           {booking.paymentStatus === PaymentStatus.PAID_OUT && (
-            <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg p-4">
-              <p className="text-emerald-200">Payment completed successfully!</p>
+            <div className="bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/40 rounded-lg p-4">
+              <p className="text-emerald-800 dark:text-emerald-200">Payment completed successfully!</p>
             </div>
           )}
 
           {booking.paymentStatus === PaymentStatus.DEBIT_FAILED && (
-            <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4">
-              <p className="text-red-200">Payment failed. Please try again or contact support.</p>
+            <div className="bg-red-50 dark:bg-red-500/20 border border-red-200 dark:border-red-500/40 rounded-lg p-4">
+              <p className="text-red-800 dark:text-red-200">Payment failed. Please try again or contact support.</p>
             </div>
           )}
         </div>

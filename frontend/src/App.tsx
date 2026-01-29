@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage';
 import GigListPage from './pages/gigs/GigListPage';
 import GigDetailsPage from './pages/gigs/GigDetailsPage';
 import CreateGigPage from './pages/gigs/CreateGigPage';
+import BookingsListPage from './pages/bookings/BookingsListPage';
 import BookingDetailsPage from './pages/bookings/BookingDetailsPage';
 import MyGigsPage from './pages/gigs/MyGigsPage';
 import ProfilePage from './pages/profile/ProfilePage';
@@ -39,6 +40,7 @@ function App() {
             <Route path="gigs/:id" element={<PrivateRoute><GigDetailsPage /></PrivateRoute>} />
             <Route path="gigs/create" element={<PrivateRoute><CreateGigPage /></PrivateRoute>} />
             <Route path="my-gigs" element={<PrivateRoute><MyGigsPage /></PrivateRoute>} />
+            <Route path="bookings" element={<PrivateRoute><BookingsListPage /></PrivateRoute>} />
             <Route path="bookings/:id" element={<PrivateRoute><BookingDetailsPage /></PrivateRoute>} />
             <Route path="profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
             <Route path="bank-accounts" element={<PrivateRoute><BankAccountsPage /></PrivateRoute>} />
