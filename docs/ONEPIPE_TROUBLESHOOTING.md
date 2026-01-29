@@ -25,7 +25,7 @@ OnePipe returns a generic **code "01"** with no provider details. That usually m
 | Cause | What to check |
 |-------|----------------|
 | **Wrong base URL** | Production vs sandbox: `ONEPIPE_BASE_URL` must match your OnePipe dashboard (e.g. `https://api.onepipe.io/v2/transact` for live). Same URL is used for both **create mandate** and **collect**; only `request_type` changes. |
-| **Signature header** | Header: `Signature: MD5(request_ref + secret_key)` as **32-char lowercase hex**. Per OnePipe docs there is **no space and no separator** between `request_ref` and secret key (direct concatenation). Wrong key or wrong order will cause auth failure. |
+| **Signature header** | Header: `Signature: MD5(request_ref;secret_key)` as **32-char lowercase hex**. Per OnePipe docs: `request_ref` then semicolon then secret key (no space). Wrong key or wrong order will cause auth failure. |
 | **Encryption of `auth.secure`** | Must be **TripleDES (DESede/ECB/PKCS5Padding)** of `accountNumber;bankCode`, Base64-encoded. Key = `ONEPIPE_SECRET_KEY` (trimmed/padded to 24 bytes). Wrong key or algorithm → provider can’t decrypt → generic error. |
 | **Encryption of `meta.bvn`** (create mandate) | If you send BVN, it must be **TripleDES** with the same secret, Base64. Invalid/plain BVN → validation failure. |
 | **Mandate `meta.amount`** | Create mandate sends **max amount in kobo** as **string** (e.g. `"500000"` for ₦5,000). Wrong type (number vs string) or wrong unit (Naira vs kobo) can cause rejection. |
@@ -34,6 +34,21 @@ OnePipe returns a generic **code "01"** with no provider details. That usually m
 | **Environment / keys** | Using **sandbox** keys on **live** URL (or the reverse) will often return a generic error. Ensure `ONEPIPE_API_KEY`, `ONEPIPE_SECRET_KEY`, and base URL all match the same environment. |
 
 So: **wrong URL, wrong signature, wrong encryption, wrong amount format, or wrong/missing biller/customer/env** can all surface as “Error occurred while processing request” with code 01.
+
+---
+
+## 1b. Logic vs OnePipe docs (create mandate)
+
+| Doc / your request | Our implementation | Match |
+|--------------------|---------------------|--------|
+| `request_ref` in body = same as in Signature | Single `requestRef` in payload and in `createHeaders(requestRef)` | Yes |
+| Signature: `MD5(request_ref;client_secret)` | `md5Hex(requestRef + ";" + secretKey)` | Yes |
+| `auth.secure`: TripleDES(accountNumber;bankCBNCode, secretKey) | `securePlain = accountNumber + ";" + bankCode`, then `encryptSecure(securePlain)` | Yes |
+| `meta.bvn`: TripleDES(BVN, secretKey) | `encryptSecure(request.getBvn())` when BVN provided | Yes |
+| `meta.amount` string in kobo | `String.valueOf(maxAmountKobo)` | Yes |
+| `mock_mode` | We send `"Live"` for real transactions. Doc sample shows `"Inspect"`; OnePipe docs do not define sandbox or when to use which. | Yes |
+
+If 400 persists: set **ONEPIPE_BILLER_CODE** if required; confirm **base URL** is `https://api.onepipe.io/v2/transact`; ensure **API key and secret** match your OnePipe account.
 
 ---
 

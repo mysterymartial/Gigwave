@@ -82,21 +82,16 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
         transaction.put("customer", customer);
 
+        // meta: amount, skip_consent, bvn, biller_code, customer_consent only (no extra keys)
         Map<String, Object> meta = new HashMap<>();
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
-        // bvn = TripleDES.encrypt("{BVN}", secretKey) per OnePipe docs (same secretKey as auth.secure)
-        if (request.getBvn() != null && !request.getBvn().isBlank()) {
-            meta.put("bvn", encryptSecure(request.getBvn()));
-        }
-        if (billerCode != null && !billerCode.isBlank()) {
-            meta.put("biller_code", billerCode);
-        }
+        meta.put("bvn", (request.getBvn() != null && !request.getBvn().isBlank())
+                ? encryptSecure(request.getBvn()) : "");
+        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode : "");
         String consentUrl = (request.getCallbackUrl() != null && !request.getCallbackUrl().isBlank())
-                ? request.getCallbackUrl()
-                : DEFAULT_CUSTOMER_CONSENT_URL;
+                ? request.getCallbackUrl() : DEFAULT_CUSTOMER_CONSENT_URL;
         meta.put("customer_consent", consentUrl);
-        meta.put("activation_method", "transfer");
         transaction.put("meta", meta);
 
         transaction.put("details", new HashMap<String, Object>());
@@ -208,10 +203,9 @@ public class OnePipeClientImpl implements OnePipeClient {
         customer.put("mobile_no", request.getPhone() != null ? request.getPhone() : "");
         transaction.put("customer", customer);
 
+        // meta: biller_code, skip_consent, customer_consent only (match docs structure)
         Map<String, Object> meta = new HashMap<>();
-        if (billerCode != null && !billerCode.isBlank()) {
-            meta.put("biller_code", billerCode);
-        }
+        meta.put("biller_code", (billerCode != null && !billerCode.isBlank()) ? billerCode : "");
         meta.put("skip_consent", "true");
         meta.put("customer_consent", "");
         transaction.put("meta", meta);
