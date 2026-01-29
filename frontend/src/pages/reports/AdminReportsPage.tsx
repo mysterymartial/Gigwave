@@ -1,11 +1,18 @@
 import { useState } from 'react';
-import { usePendingReports, useReviewReport } from '../../hooks/useAccountReports';
+import { useAllReports, usePendingReports, useReviewReport } from '../../hooks/useAccountReports';
 import { ReportStatus } from '../../types';
 import { format } from 'date-fns';
 
+type ReportTab = 'pending' | 'all';
+
 export default function AdminReportsPage() {
-  const { data: reports, isLoading } = usePendingReports();
+  const [tab, setTab] = useState<ReportTab>('pending');
+  const { data: pendingReports, isLoading: pendingLoading } = usePendingReports();
+  const { data: allReports, isLoading: allLoading } = useAllReports();
   const reviewReport = useReviewReport();
+
+  const reports = tab === 'pending' ? pendingReports : allReports;
+  const isLoading = tab === 'pending' ? pendingLoading : allLoading;
 
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [reviewStatus, setReviewStatus] = useState<ReportStatus>(ReportStatus.APPROVED);
@@ -47,6 +54,29 @@ export default function AdminReportsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Admin - Account Reports</h1>
+
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setTab('pending')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              tab === 'pending'
+                ? 'bg-teal-500 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setTab('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              tab === 'all'
+                ? 'bg-teal-500 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            All Reports
+          </button>
+        </div>
 
         <div className="space-y-4">
           {reports && reports.length > 0 ? (
@@ -134,18 +164,20 @@ export default function AdminReportsPage() {
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : report.status === ReportStatus.PENDING ? (
                 <button
                   onClick={() => setSelectedReportId(report.id)}
                   className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-400 font-semibold transition-colors"
                 >
                   Review Report
                 </button>
-              )}
+              ) : null}
             </div>
           ))
         ) : (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">No pending reports</div>
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            {tab === 'pending' ? 'No pending reports' : 'No reports'}
+          </div>
         )}
       </div>
       </div>

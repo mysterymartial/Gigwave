@@ -6,6 +6,7 @@ import { UserRole } from '../../types';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import LocationMap from '../../components/LocationMap';
+import { getAuthErrorMessage } from '../../lib/authErrors';
 
 export default function GigDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,9 +15,11 @@ export default function GigDetailsPage() {
   const { data: gig, isLoading } = useGetGig(id!);
   const acceptGig = useAcceptGig();
   const [acceptedAmount, setAcceptedAmount] = useState('');
+  const [acceptError, setAcceptError] = useState<string | null>(null);
 
   const handleAccept = async () => {
     if (!acceptedAmount || !gig) return;
+    setAcceptError(null);
     try {
       const booking = await acceptGig.mutateAsync({
         gigId: gig.id,
@@ -24,7 +27,7 @@ export default function GigDetailsPage() {
       });
       navigate(`/bookings/${booking.id}`);
     } catch (error) {
-      console.error('Failed to accept gig', error);
+      setAcceptError(getAuthErrorMessage(error, 'Failed to accept gig. Please try again.'));
     }
   };
 
@@ -86,6 +89,11 @@ export default function GigDetailsPage() {
           {user?.role === UserRole.MUSICIAN && gig.status === 'OPEN' && (
             <div className="border-t border-emerald-700/40 pt-6">
               <h2 className="text-xl font-semibold text-white mb-4">Accept This Gig</h2>
+              {acceptError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
+                  {acceptError}
+                </div>
+              )}
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-emerald-100 mb-1">

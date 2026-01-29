@@ -1,15 +1,21 @@
 import { useState } from 'react';
-import { useAllCustomers, useDebitCustomer } from '../../hooks/useAdmin';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAllCustomers, useCustomer, useDebitCustomer } from '../../hooks/useAdmin';
+import { useDisableAccount, useEnableAccount } from '../../hooks/useAccountReports';
 import { useAuth } from '../../hooks/useAuth';
 import { UserRole } from '../../types';
 import { format } from 'date-fns';
 
 export default function AdminCustomersPage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: customers, isLoading } = useAllCustomers();
   const debitCustomer = useDebitCustomer();
+  const disableAccount = useDisableAccount();
+  const enableAccount = useEnableAccount();
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [viewCustomerId, setViewCustomerId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
 
@@ -125,14 +131,56 @@ export default function AdminCustomersPage() {
                     {format(new Date(customer.createdAt), 'MMM dd, yyyy')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {customer.hasActiveMandate && !customer.isDisabled && (
+                    <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => setSelectedCustomerId(customer.id)}
-                        className="text-red-400 hover:text-red-300 transition-colors"
+                        onClick={() => setViewCustomerId(customer.id)}
+                        className="text-teal-400 hover:text-teal-300 transition-colors"
                       >
-                        Debit
+                        View
                       </button>
-                    )}
+                      {customer.hasActiveMandate && !customer.isDisabled && (
+                        <button
+                          onClick={() => setSelectedCustomerId(customer.id)}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                        >
+                          Debit
+                        </button>
+                      )}
+                      {!customer.isDisabled ? (
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Disable this account?')) return;
+                            try {
+                              await disableAccount.mutateAsync({ userId: customer.id });
+                              queryClient.invalidateQueries({ queryKey: ['admin', 'customers'] });
+                              alert('Account disabled');
+                            } catch (e: any) {
+                              alert(e?.response?.data?.message || 'Failed to disable');
+                            }
+                          }}
+                          disabled={disableAccount.isPending}
+                          className="text-amber-400 hover:text-amber-300 transition-colors disabled:opacity-50"
+                        >
+                          Disable
+                        </button>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await enableAccount.mutateAsync({ userId: customer.id });
+                              queryClient.invalidateQueries({ queryKey: ['admin', 'customers'] });
+                              alert('Account enabled');
+                            } catch (e: any) {
+                              alert(e?.response?.data?.message || 'Failed to enable');
+                            }
+                          }}
+                          disabled={enableAccount.isPending}
+                          className="text-green-400 hover:text-green-300 transition-colors disabled:opacity-50"
+                        >
+                          Enable
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -202,6 +250,47 @@ export default function AdminCustomersPage() {
           </div>
         </div>
       )}
+
+      {/* View Customer Modal */}
+      {viewCustomerId && (
+        <ViewCustomerModal
+          customerId={viewCustomerId}
+          onClose={() => setViewCustomerId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ViewCustomerModal({ customerId, onClose }: { customerId: string; onClose: () => void }) {
+  const { data: customer, isLoading } = useCustomer(customerId);
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-emerald-900/95 rounded-2xl border border-gray-200 dark:border-emerald-700/50 p-6 max-w-md w-full shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Customer Details</h2>
+        {isLoading && <p className="text-gray-600 dark:text-emerald-200/80">Loading...</p>}
+        {customer && (
+          <div className="space-y-2 text-sm">
+            <p><span className="text-gray-500 dark:text-emerald-200/70">ID:</span> <span className="text-gray-900 dark:text-white">{customer.id}</span></p>
+            <p><span className="text-gray-500 dark:text-emerald-200/70">Phone:</span> <span className="text-gray-900 dark:text-white">{customer.phone}</span></p>
+            {customer.email && <p><span className="text-gray-500 dark:text-emerald-200/70">Email:</span> <span className="text-gray-900 dark:text-white">{customer.email}</span></p>}
+            <p><span className="text-gray-500 dark:text-emerald-200/70">Role:</span> <span className="text-gray-900 dark:text-white">{customer.role}</span></p>
+            <p><span className="text-gray-500 dark:text-emerald-200/70">Status:</span> <span className="text-gray-900 dark:text-white">{customer.isDisabled ? 'Disabled' : 'Active'}</span></p>
+            <p><span className="text-gray-500 dark:text-emerald-200/70">Mandate:</span> <span className="text-gray-900 dark:text-white">{customer.hasActiveMandate ? 'Active' : 'None'}</span></p>
+            {customer.mandateRef && <p><span className="text-gray-500 dark:text-emerald-200/70">Mandate ref:</span> <span className="text-gray-900 dark:text-white break-all">{customer.mandateRef}</span></p>}
+            <p><span className="text-gray-500 dark:text-emerald-200/70">Created:</span> <span className="text-gray-900 dark:text-white">{format(new Date(customer.createdAt), 'MMM dd, yyyy')}</span></p>
+          </div>
+        )}
+        <button
+          onClick={onClose}
+          className="mt-4 w-full px-4 py-2 border border-gray-300 dark:border-emerald-700/50 rounded-lg text-gray-700 dark:text-emerald-200 hover:bg-gray-100 dark:hover:bg-emerald-900/60"
+        >
+          Close
+        </button>
+      </div>
     </div>
   );
 }
