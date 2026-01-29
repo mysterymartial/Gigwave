@@ -1,7 +1,7 @@
 package com.gigwave.api.controllers;
 
-import com.gigwave.api.dto.kyc.KycDocumentDto;
-import com.gigwave.application.kyc.KycService;
+import com.gigwave.api.dto.KycDocumentDto;
+import com.gigwave.application.KycService;
 import com.gigwave.domain.users.KycDocument;
 import com.gigwave.infrastructure.security.CurrentUser;
 import com.gigwave.infrastructure.storage.FileStorageService;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -62,7 +63,7 @@ public class FileUploadController {
     }
 
     @PostMapping("/kyc-document")
-    public ResponseEntity<KycDocumentDto> uploadKycDocument(
+    public ResponseEntity<?> uploadKycDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam("documentType") String documentType,
             @CurrentUser UUID userId
@@ -74,19 +75,23 @@ public class FileUploadController {
 
             String fileUrl = fileStorageService.storeKycDocument(file, userId.toString());
             KycDocument document = kycService.submitKycDocument(userId, documentType, fileUrl);
-            
+
+            LocalDateTime uploadedAt = document.getUploadedAt();
             KycDocumentDto dto = KycDocumentDto.builder()
                     .id(document.getId())
                     .userId(document.getUserId())
                     .documentType(document.getDocumentType())
                     .documentUrl(document.getDocumentUrl())
-                    .uploadedAt(document.getUploadedAt())
+                    .uploadedAt(uploadedAt != null ? uploadedAt : LocalDateTime.now())
                     .build();
-            
+
             return ResponseEntity.ok(dto);
         } catch (IOException e) {
             log.error("Error uploading KYC document", e);
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.status(500).body(Map.of("error", "Upload failed: " + (e.getMessage() != null ? e.getMessage() : "storage error")));
+        } catch (Exception e) {
+            log.error("Error uploading KYC document", e);
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Upload failed"));
         }
     }
 

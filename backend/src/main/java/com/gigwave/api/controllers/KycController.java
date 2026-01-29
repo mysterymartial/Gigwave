@@ -1,7 +1,7 @@
 package com.gigwave.api.controllers;
 
-import com.gigwave.api.dto.kyc.KycDocumentDto;
-import com.gigwave.application.kyc.KycService;
+import com.gigwave.api.dto.KycDocumentDto;
+import com.gigwave.application.KycService;
 import com.gigwave.domain.users.KycDocument;
 import com.gigwave.domain.users.KycStatus;
 import com.gigwave.infrastructure.security.CurrentUser;

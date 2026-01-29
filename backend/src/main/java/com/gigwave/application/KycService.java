@@ -1,4 +1,4 @@
-package com.gigwave.application.kyc;
+package com.gigwave.application;
 
 import com.gigwave.domain.users.KycDocument;
 import com.gigwave.infrastructure.persistence.users.KycDocumentRepository;

@@ -83,6 +83,7 @@ public class OnePipeClientImpl implements OnePipeClient {
         Map<String, Object> meta = new HashMap<>();
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
+        // BVN per OnePipe docs: same encryption as auth.secure (TripleDES + Base64)
         if (request.getBvn() != null && !request.getBvn().isBlank()) {
             meta.put("bvn", encryptSecure(request.getBvn()));
         }
@@ -207,6 +208,8 @@ public class OnePipeClientImpl implements OnePipeClient {
         if (billerCode != null && !billerCode.isBlank()) {
             meta.put("biller_code", billerCode);
         }
+        meta.put("skip_consent", "true");
+        meta.put("customer_consent", "");
         transaction.put("meta", meta);
 
         transaction.put("details", new HashMap<String, Object>());
@@ -371,10 +374,10 @@ public class OnePipeClientImpl implements OnePipeClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
 
-        // Signature: MD5(request_ref;client_secret) per OnePipe docs
+        // Signature: MD5(request_ref + secret_key) with no space/separator per OnePipe docs
         if (requestRef != null && !requestRef.isBlank()) {
             try {
-                String signature = md5Hex(requestRef + ";" + secretKey);
+                String signature = md5Hex(requestRef + secretKey);
                 headers.set("Signature", signature);
             } catch (Exception e) {
                 log.error("Error generating signature", e);

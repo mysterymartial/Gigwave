@@ -1,0 +1,51 @@
+{
+  "info": {
+    "name": "OnePipe – GigWave",
+    "description": "Create mandate and collect (same as backend). Set env vars: ONEPIPE_BASE_URL, ONEPIPE_API_KEY, ONEPIPE_SECRET_KEY. Signature and auth.secure must be computed (see ONEPIPE_POSTMAN_REQUESTS.md).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://api.onepipe.io/v2/transact" },
+    { "key": "api_key", "value": "your-onepipe-api-key" },
+    { "key": "secret_key", "value": "your-onepipe-secret-key" },
+    { "key": "request_ref", "value": "" },
+    { "key": "signature", "value": "" },
+    { "key": "encrypted_secure", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create Mandate",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" },
+          { "key": "Authorization", "value": "Bearer {{api_key}}", "type": "text" },
+          { "key": "Signature", "value": "{{signature}}", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"request_ref\": \"{{request_ref}}\",\n  \"request_type\": \"create mandate\",\n  \"auth\": {\n    \"type\": \"bank.account\",\n    \"secure\": \"{{encrypted_secure}}\",\n    \"auth_provider\": \"PaywithAccount\"\n  },\n  \"transaction\": {\n    \"mock_mode\": \"Live\",\n    \"transaction_ref\": \"{{transaction_ref}}\",\n    \"transaction_desc\": \"Creating a mandate\",\n    \"transaction_ref_parent\": null,\n    \"amount\": 0,\n    \"customer\": {\n      \"customer_ref\": \"user-uuid-here\",\n      \"firstname\": \"John\",\n      \"surname\": \"Doe\",\n      \"email\": \"john@example.com\",\n      \"mobile_no\": \"08012345678\"\n    },\n    \"meta\": {\n      \"amount\": \"500000\",\n      \"skip_consent\": \"true\",\n      \"customer_consent\": \"https://paywithaccount.com/consent_template.pdf\",\n      \"activation_method\": \"transfer\"\n    },\n    \"details\": {}\n  }\n}"
+        },
+        "url": "{{base_url}}",
+        "description": "Same as backend setupMandate. Set request_ref (e.g. REQ_1738000000000), signature = MD5(request_ref;secret_key) hex, encrypted_secure = 3DES+Base64(accountNumber;bankCode)."
+      }
+    },
+    {
+      "name": "Collect",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" },
+          { "key": "Authorization", "value": "Bearer {{api_key}}", "type": "text" },
+          { "key": "Signature", "value": "{{signature}}", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"request_ref\": \"{{request_ref}}\",\n  \"request_type\": \"collect\",\n  \"auth\": {\n    \"type\": \"bank.account\",\n    \"secure\": \"{{encrypted_secure}}\",\n    \"auth_provider\": \"NIBBS\"\n  },\n  \"transaction\": {\n    \"mock_mode\": \"Live\",\n    \"transaction_ref\": \"{{transaction_ref}}\",\n    \"transaction_desc\": \"A nice narration\",\n    \"transaction_ref_parent\": null,\n    \"amount\": 10800,\n    \"customer\": {\n      \"customer_ref\": \"user-uuid-here\",\n      \"firstname\": \"John\",\n      \"surname\": \"Doe\",\n      \"email\": \"john@example.com\",\n      \"mobile_no\": \"08012345678\"\n    },\n    \"meta\": {\n      \"biller_code\": \"\",\n      \"skip_consent\": \"true\",\n      \"customer_consent\": \"\"\n    },\n    \"details\": {}\n  }\n}"
+        },
+        "url": "{{base_url}}",
+        "description": "Same as backend initiateDebit. amount in kobo (number). Set request_ref, signature, encrypted_secure."
+      }
+    }
+  ]
+}

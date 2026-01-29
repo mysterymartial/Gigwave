@@ -21,6 +21,7 @@ export default function BankAccountsPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [showMandateForm, setShowMandateForm] = useState<string | null>(null); // accountId
+  const [mandateBvn, setMandateBvn] = useState('');
   const [bankCode, setBankCode] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountName, setAccountName] = useState('');
@@ -86,10 +87,12 @@ export default function BankAccountsPage() {
     setError(null);
     const idempotencyKey = `mandate-${accountId}-${Date.now()}`;
     const mandateFn = user?.role === UserRole.EVENT_OWNER ? setupOrganizerMandate : setupMusicianMandate;
+    const bvnTrimmed = mandateBvn?.trim() || undefined;
     mandateFn.mutate(
       {
         bankAccountId: accountId,
         maxAmount: MANDATE_MAX_AMOUNT_NGN,
+        bvn: bvnTrimmed,
         idempotencyKey,
       },
       {
@@ -291,7 +294,7 @@ export default function BankAccountsPage() {
           )}
         </div>
 
-        {/* Mandate Setup Modal - max amount fixed at ₦5,000,000; BVN not collected */}
+        {/* Mandate Setup Modal - max amount fixed at ₦5,000; BVN optional */}
         {showMandateForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-emerald-900/95 dark:bg-emerald-900/95 rounded-2xl border border-emerald-700/50 p-8 max-w-md w-full shadow-xl">
@@ -302,7 +305,7 @@ export default function BankAccountsPage() {
                   : 'Authorize GigWave to pay you securely for completed gigs.'}
               </p>
               <p className="text-emerald-200/60 mb-6 text-xs">
-                Maximum transaction amount: ₦5,000,000
+                Maximum transaction amount: ₦5,000
               </p>
               {error && (
                 <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
@@ -314,6 +317,7 @@ export default function BankAccountsPage() {
                   type="button"
                   onClick={() => {
                     setShowMandateForm(null);
+                    setMandateBvn('');
                     setError(null);
                   }}
                   className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-colors"

@@ -1,4 +1,4 @@
-package com.gigwave.api.dto.kyc;
+package com.gigwave.api.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
