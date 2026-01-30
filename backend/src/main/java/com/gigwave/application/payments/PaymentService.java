@@ -91,11 +91,17 @@ public class PaymentService {
 
         MandateResponse response = onePipeClient.setupMandate(request);
 
+        // Avoid duplicate key on mandateRef: use unique placeholder when OnePipe returns empty
+        String mandateRef = response.getMandateRef();
+        if (mandateRef == null || mandateRef.isBlank()) {
+            mandateRef = "PENDING_" + java.util.UUID.randomUUID();
+        }
         PaymentMandate mandate = PaymentMandate.builder()
+                .id(java.util.UUID.randomUUID())
                 .userId(userId)
                 .bankAccountId(bankAccountId)
                 .provider("onepipe")
-                .mandateRef(response.getMandateRef())
+                .mandateRef(mandateRef)
                 .status(MandateStatus.PENDING)
                 .maxAmount(maxAmount)
                 .build();
@@ -129,11 +135,17 @@ public class PaymentService {
 
         MandateResponse response = onePipeClient.setupMandate(request);
 
+        // Avoid duplicate key on mandateRef: use unique placeholder when OnePipe returns empty
+        String mandateRef = response.getMandateRef();
+        if (mandateRef == null || mandateRef.isBlank()) {
+            mandateRef = "PENDING_" + java.util.UUID.randomUUID();
+        }
         PaymentMandate mandate = PaymentMandate.builder()
+                .id(java.util.UUID.randomUUID())
                 .userId(userId)
                 .bankAccountId(bankAccountId)
                 .provider("onepipe")
-                .mandateRef(response.getMandateRef())
+                .mandateRef(mandateRef)
                 .status(MandateStatus.PENDING)
                 .maxAmount(maxAmount)
                 .build();
