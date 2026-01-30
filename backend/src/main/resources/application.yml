@@ -70,8 +70,8 @@ logging:
 
 file:
   storage:
-    # Default 'imagekit' with fallback to local on failure; set FILE_STORAGE_TYPE=local to use only local
-    type: ${FILE_STORAGE_TYPE:imagekit}
+    # Default 'local'; set FILE_STORAGE_TYPE=imagekit to use ImageKit
+    type: ${FILE_STORAGE_TYPE:local}
   upload:
     chat-media-dir: uploads/chat-media
     dispute-evidence-dir: uploads/dispute-evidence

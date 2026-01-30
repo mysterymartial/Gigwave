@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "file.storage.type", havingValue = "imagekit", matchIfMissing = true)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "file.storage.type", havingValue = "imagekit", matchIfMissing = false)
 public class ImageKitFileStorageService implements FileStorageService {
     private final ImageKit imageKit;
     private final String urlEndpoint;

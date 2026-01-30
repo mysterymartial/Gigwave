@@ -123,6 +123,7 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={genres}
                 onChange={(e) => setGenres(e.target.value)}
+                required
               />
             </div>
             <div>
@@ -132,6 +133,7 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
+                required
               />
             </div>
             <div>
@@ -141,6 +143,7 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={minFee}
                 onChange={(e) => setMinFee(e.target.value)}
+                required
               />
             </div>
             <div>
@@ -201,6 +204,7 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 rounded-lg bg-gray-800/80 border border-emerald-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 value={eventTypes}
                 onChange={(e) => setEventTypes(e.target.value)}
+                required
               />
             </div>
             <button

@@ -14,9 +14,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@org.springframework.boot.autoconfigure.condition.ConditionalOnExpression(
-    "'${file.storage.type:imagekit}'.equals('local') || '${file.storage.type:imagekit}'.equals('imagekit')"
-)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "file.storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalFileStorageService implements FileStorageService {
     private final Path chatMediaStorageLocation;
     private final Path disputeEvidenceStorageLocation;
