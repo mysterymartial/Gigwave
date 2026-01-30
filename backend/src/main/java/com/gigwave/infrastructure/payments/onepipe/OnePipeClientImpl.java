@@ -52,8 +52,8 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.mock-mode:Inspect}")
     private String mockMode;
 
-    /** Encryption for secure/BVN: "ecb" (default, matches many Nigerian gateways) or "paywithaccount" (CBC+MD5+UTF-16LE). */
-    @Value("${onepipe.encryption:ecb}")
+    /** Encryption per OnePipe docs: CBC + MD5(secret UTF-16LE) key + UTF-16LE plaintext. Set onepipe.encryption=ecb to use ECB instead. */
+    @Value("${onepipe.encryption:paywithaccount}")
     private String encryptionMode;
 
     /** PaywithAccount consent document URL for create mandate meta.customer_consent (per OnePipe/PaywithAccount). */
@@ -104,8 +104,11 @@ public class OnePipeClientImpl implements OnePipeClient {
         Map<String, Object> meta = new HashMap<>();
         meta.put("amount", String.valueOf(maxAmountKobo));
         meta.put("skip_consent", "true");
+        // BVN always present: encrypted with same secret as auth.secure when provided, else ""
         if (request.getBvn() != null && !request.getBvn().isBlank()) {
             meta.put("bvn", encryptSecure(request.getBvn().trim()));
+        } else {
+            meta.put("bvn", "");
         }
         meta.put("biller_code", (billerCode != null) ? billerCode.trim() : "");
         meta.put("customer_consent", CUSTOMER_CONSENT_URL);
