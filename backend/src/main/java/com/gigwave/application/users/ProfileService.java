@@ -47,19 +47,9 @@ public class ProfileService {
         profile.setTiktokHandle(tiktokHandle);
         profile.setXHandle(xHandle);
         if (performanceVideoUrls != null) {
-            // Enforce minimum 1 video requirement (for testing)
-            if (performanceVideoUrls.isEmpty()) {
-                throw new IllegalArgumentException("Musician must upload at least one performance video");
-            }
             profile.setPerformanceVideoUrls(performanceVideoUrls);
-        } else {
-            // If not providing videos in update, check existing videos
-            List<String> existingVideos = profile.getPerformanceVideoUrls();
-            if (existingVideos == null || existingVideos.isEmpty()) {
-                throw new IllegalArgumentException("Musician must upload at least one performance video");
-            }
-            // If updating and not providing videos, keep existing ones (already validated above)
         }
+        // Allow profile save with or without videos; no minimum video requirement
 
         return musicianProfileRepository.save(profile);
     }

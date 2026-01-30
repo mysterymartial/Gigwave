@@ -66,12 +66,6 @@ export default function ProfilePage() {
 
   const handleMusicianSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (performanceVideos.length < 1) {
-      alert('Musician must upload at least one performance video');
-      return;
-    }
-
     try {
       await updateMusician.mutateAsync({
         stageName,
@@ -151,7 +145,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-emerald-100 mb-1">
-                Performance Videos (Minimum 1 required) - {performanceVideos.length}/1
+                Performance Videos (optional) - {performanceVideos.length}
               </label>
               <input
                 type="file"
@@ -160,9 +154,6 @@ export default function ProfilePage() {
                 onChange={handleVideoUpload}
                 disabled={videoUploading}
               />
-              {performanceVideos.length < 1 && (
-                <p className="text-red-400 text-sm mt-1">You must upload at least one performance video</p>
-              )}
               <div className="mt-2 space-y-2">
                 {performanceVideos.map((url, index) => (
                   <div key={index} className="flex items-center justify-between bg-gray-800/60 p-3 rounded-lg border border-emerald-700/30">
@@ -180,7 +171,7 @@ export default function ProfilePage() {
             </div>
             <button
               type="submit"
-              disabled={updateMusician.isPending || performanceVideos.length < 1}
+              disabled={updateMusician.isPending}
               className="w-full bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
             >
               {updateMusician.isPending ? 'Saving...' : 'Save Profile'}

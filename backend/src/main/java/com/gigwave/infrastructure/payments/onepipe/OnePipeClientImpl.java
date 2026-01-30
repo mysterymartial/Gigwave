@@ -48,8 +48,8 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.biller-code:}")
     private String billerCode;
 
-    /** OnePipe mock_mode: "Inspect" or "Live". Default Inspect for testing; set onepipe.mock-mode=Live for production. */
-    @Value("${onepipe.mock-mode:Inspect}")
+    /** OnePipe mock_mode: "Inspect" or "Live". Default Live for production; set onepipe.mock-mode=Inspect to test. */
+    @Value("${onepipe.mock-mode:Live}")
     private String mockMode;
 
     /** Encryption per OnePipe docs: CBC + MD5(secret UTF-16LE) key + UTF-16LE plaintext. Set onepipe.encryption=ecb to use ECB instead. */

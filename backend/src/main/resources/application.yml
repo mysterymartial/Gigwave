@@ -32,8 +32,8 @@ onepipe:
   secret-key: ${ONEPIPE_SECRET_KEY:your-onepipe-secret-key}
   environment: ${ONEPIPE_ENV:sandbox}
   biller-code: ${ONEPIPE_BILLER_CODE:}
-  # mock_mode: Inspect (test) or Live (production). Default Inspect to avoid code 01 in test.
-  mock-mode: ${ONEPIPE_MOCK_MODE:Inspect}
+  # mock_mode: Live (production) or Inspect (test). Default Live.
+  mock-mode: ${ONEPIPE_MOCK_MODE:Live}
   # encryption: paywithaccount (default; per OnePipe docs: CBC+MD5+UTF-16LE) or ecb
   encryption: ${ONEPIPE_ENCRYPTION:paywithaccount}
 
@@ -70,8 +70,8 @@ logging:
 
 file:
   storage:
-    # Default 'local' so Save Profile / video upload works without ImageKit; set FILE_STORAGE_TYPE=imagekit to use ImageKit
-    type: ${FILE_STORAGE_TYPE:local}
+    # Default 'imagekit' with fallback to local on failure; set FILE_STORAGE_TYPE=local to use only local
+    type: ${FILE_STORAGE_TYPE:imagekit}
   upload:
     chat-media-dir: uploads/chat-media
     dispute-evidence-dir: uploads/dispute-evidence

@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "file.storage.type", havingValue = "imagekit", matchIfMissing = false)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "file.storage.type", havingValue = "imagekit", matchIfMissing = true)
 public class ImageKitFileStorageService implements FileStorageService {
     private final ImageKit imageKit;
     private final String urlEndpoint;
@@ -68,6 +68,9 @@ public class ImageKitFileStorageService implements FileStorageService {
 
     @Override
     public void deleteFile(String fileUrl) throws IOException {
+        if (imageKit == null) {
+            throw new IOException("ImageKit not configured");
+        }
         try {
             // Extract file ID from URL
             String fileId = extractFileIdFromUrl(fileUrl);
@@ -85,6 +88,9 @@ public class ImageKitFileStorageService implements FileStorageService {
     }
 
     private String storeFile(MultipartFile file, String folder, String identifier) throws IOException {
+        if (imageKit == null) {
+            throw new IOException("ImageKit not configured");
+        }
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || originalFilename.isEmpty()) {
             throw new IOException("File name is empty");
