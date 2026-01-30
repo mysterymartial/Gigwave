@@ -129,8 +129,14 @@ public class OnePipeClientImpl implements OnePipeClient {
         try {
             ResponseEntity<Map> response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, Map.class);
             Map<String, Object> body = response.getBody();
-            log.info("OnePipe create mandate response status: {}", response.getStatusCode());
-            if (body != null) {
+            log.info("OnePipe create mandate response status: {}, body present: {}", response.getStatusCode(), body != null);
+            if (body == null) {
+                log.error("OnePipe returned null response body");
+                throw new RuntimeException("OnePipe mandate setup failed: Empty response from OnePipe API");
+            }
+            
+            // Process response body
+            {
                 // OnePipe can return status "Failed" with errors in body.errors or body.data.errors
                 if ("Failed".equals(body.get("status"))) {
                     Object errors = body.get("errors");
@@ -154,10 +160,37 @@ public class OnePipeClientImpl implements OnePipeClient {
                         .authorizationUrl((String) tx.getOrDefault("authorization_url", ""))
                         .message((String) body.getOrDefault("message", ""))
                         .build();
-            }
         } catch (HttpClientErrorException e) {
-            log.error("OnePipe create mandate HTTP error: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new RuntimeException("OnePipe API error: " + e.getResponseBodyAsString(), e);
+            String responseBody = e.getResponseBodyAsString();
+            log.error("OnePipe create mandate HTTP error: status={}, body={}", e.getStatusCode(), responseBody);
+            
+            // Try to parse error response as JSON to extract error message
+            String errorMessage = "OnePipe API error";
+            if (responseBody != null && !responseBody.isBlank()) {
+                try {
+                    Map<String, Object> errorBody = OBJECT_MAPPER.readValue(responseBody, Map.class);
+                    Object errors = errorBody.get("errors");
+                    if (errors == null && errorBody.get("data") instanceof Map) {
+                        errors = ((Map<?, ?>) errorBody.get("data")).get("errors");
+                    }
+                    if (errors != null) {
+                        errorMessage = extractErrorMessage(errors);
+                    } else {
+                        Object message = errorBody.get("message");
+                        if (message != null) {
+                            errorMessage = message.toString();
+                        } else {
+                            errorMessage = "OnePipe API error: " + responseBody;
+                        }
+                    }
+                } catch (Exception parseEx) {
+                    // If parsing fails, use raw response body
+                    errorMessage = "OnePipe API error (HTTP " + e.getStatusCode() + "): " + responseBody;
+                }
+            } else {
+                errorMessage = "OnePipe API error (HTTP " + e.getStatusCode() + ")";
+            }
+            throw new RuntimeException("OnePipe mandate setup failed: " + errorMessage, e);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
