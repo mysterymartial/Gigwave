@@ -37,15 +37,15 @@ public class BookingService {
             throw new IllegalStateException("Gig is not open for booking");
         }
 
-        // Musician must have at least 3 performance videos to accept a gig
+        // Musician must have at least one performance video to accept a gig (enforced for testing)
         var profileOpt = musicianProfileRepository.findByUserId(musicianId);
         if (profileOpt.isEmpty()) {
-            throw new IllegalArgumentException("Upload at least 3 performance videos in your profile before accepting a gig");
+            throw new IllegalArgumentException("Upload at least one performance video in your profile before accepting a gig");
         }
         var profile = profileOpt.get();
         var videos = profile.getPerformanceVideoUrls();
-        if (videos == null || videos.size() < 3) {
-            throw new IllegalArgumentException("Upload at least 3 performance videos in your profile before accepting a gig");
+        if (videos == null || videos.isEmpty()) {
+            throw new IllegalArgumentException("Upload at least one performance video in your profile before accepting a gig");
         }
 
         Booking booking = Booking.builder()

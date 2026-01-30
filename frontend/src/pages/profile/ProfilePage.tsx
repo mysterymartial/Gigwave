@@ -62,9 +62,9 @@ export default function ProfilePage() {
   const handleMusicianSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    // Validate minimum 3 videos
-    if (performanceVideos.length < 3) {
-      alert('Musician must upload at least 3 performance videos');
+    // Validate minimum 1 video (for testing)
+    if (performanceVideos.length < 1) {
+      alert('Musician must upload at least one performance video');
       return;
     }
 
@@ -146,7 +146,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-emerald-100 mb-1">
-                Performance Videos (Minimum 3 required) - {performanceVideos.length}/3
+                Performance Videos (Minimum 1 required) - {performanceVideos.length}/1
               </label>
               <input
                 type="file"
@@ -155,8 +155,8 @@ export default function ProfilePage() {
                 onChange={handleVideoUpload}
                 disabled={videoUploading}
               />
-              {performanceVideos.length < 3 && (
-                <p className="text-red-400 text-sm mt-1">You must upload at least {3 - performanceVideos.length} more video(s)</p>
+              {performanceVideos.length < 1 && (
+                <p className="text-red-400 text-sm mt-1">You must upload at least one performance video</p>
               )}
               <div className="mt-2 space-y-2">
                 {performanceVideos.map((url, index) => (

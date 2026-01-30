@@ -83,7 +83,7 @@ export default function BankAccountsPage() {
         onSuccess: (response) => {
           if (response.authorizationUrl) {
             // Redirect to OnePipe authorization page
-            // After authorization, user will return and Layout will enforce 3 videos if musician
+            // After authorization, user will return and Layout will enforce 1 video if musician
             window.location.href = response.authorizationUrl;
           } else {
             setError('Mandate setup initiated. Please check your email or SMS for authorization.');
@@ -91,7 +91,7 @@ export default function BankAccountsPage() {
             // For musicians: after mandate setup, check if they need to add videos
             if (user?.role === UserRole.MUSICIAN) {
               const videoCount = musicianProfile?.performanceVideoUrls?.length || 0;
-              if (videoCount < 3) {
+              if (videoCount < 1) {
                 setTimeout(() => navigate('/profile'), 2000);
               }
             }
