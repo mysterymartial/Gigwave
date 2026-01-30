@@ -52,8 +52,8 @@ public class OnePipeClientImpl implements OnePipeClient {
     @Value("${onepipe.mock-mode:Live}")
     private String mockMode;
 
-    /** Encryption per OnePipe docs: CBC + MD5(secret UTF-16LE) key + UTF-16LE plaintext. Set onepipe.encryption=ecb to use ECB instead. */
-    @Value("${onepipe.encryption:paywithaccount}")
+    /** Encryption: ecb (default; Postman doc) or paywithaccount. */
+    @Value("${onepipe.encryption:ecb}")
     private String encryptionMode;
 
     /** PaywithAccount consent document URL for create mandate meta.customer_consent (per OnePipe/PaywithAccount). */
