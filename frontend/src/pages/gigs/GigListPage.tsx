@@ -16,11 +16,11 @@ export default function GigListPage() {
   const { data: gigs, isLoading } = useListGigs(filters);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Find Gigs</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">Find Gigs</h1>
 
-        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 p-6 rounded-xl border border-emerald-700/40 mb-6 shadow-lg">
+        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 p-4 sm:p-6 rounded-xl border border-emerald-700/40 mb-4 sm:mb-6 shadow-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-emerald-100 mb-1">City</label>

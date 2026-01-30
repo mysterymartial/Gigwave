@@ -37,22 +37,22 @@ export default function ReviewsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Reviews</h1>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Reviews</h1>
 
       {booking && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Write a Review</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Write a Review</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-              <div className="flex space-x-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating</label>
+              <div className="flex space-x-1 sm:space-x-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
                     onClick={() => setRating(star)}
-                    className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                    className={`text-xl sm:text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
                   >
                     ⭐
                   </button>
@@ -60,9 +60,9 @@ export default function ReviewsPage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comment</label>
               <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 rows={4}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -71,7 +71,7 @@ export default function ReviewsPage() {
             <button
               type="submit"
               disabled={createReview.isPending}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm sm:text-base"
             >
               {createReview.isPending ? 'Submitting...' : 'Submit Review'}
             </button>
@@ -80,12 +80,12 @@ export default function ReviewsPage() {
       )}
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Reviews</h2>
         {reviews && reviews.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {reviews.map((review) => (
-              <div key={review.id} className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-start justify-between">
+              <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center mb-2">
                       {[...Array(5)].map((_, i) => (

@@ -20,13 +20,13 @@ export default function HomePage() {
 
       {/* Recent Gigs Section - show when logged in */}
       {user && (
-        <section className="py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+        <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
           <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Recent gigs near you</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Recent gigs near you</h2>
               <Link
                 to="/gigs"
-                className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium transition-colors"
+                className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium transition-colors text-sm sm:text-base"
               >
                 View all →
               </Link>

@@ -104,12 +104,12 @@ export default function AdminCustomersPage() {
                       <div className="text-sm text-gray-600 dark:text-emerald-200/80">{customer.email}</div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-teal-100 dark:bg-teal-500/30 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-500/50">
                       {customer.role}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                     {customer.isDisabled ? (
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 dark:bg-red-500/30 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-500/50">
                         Disabled
@@ -120,18 +120,18 @@ export default function AdminCustomersPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm">
                     {customer.hasActiveMandate ? (
                       <span className="text-green-700 dark:text-green-400">Active</span>
                     ) : (
                       <span className="text-red-700 dark:text-red-400">None</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-emerald-200/80">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600 dark:text-emerald-200/80">
                     {format(new Date(customer.createdAt), 'MMM dd, yyyy')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex flex-wrap gap-2">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                    <div className="flex flex-wrap gap-1 sm:gap-2">
                       <button
                         onClick={() => setViewCustomerId(customer.id)}
                         className="text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors"

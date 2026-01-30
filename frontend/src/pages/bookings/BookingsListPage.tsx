@@ -25,10 +25,10 @@ export default function BookingsListPage() {
   const hasBookings = list.length > 0;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Bookings & Messages</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Bookings & Messages</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
           {isAdmin
             ? 'View and manage booking-related messages and details.'
             : 'Your bookings and conversations with musicians or event owners.'}
@@ -60,16 +60,16 @@ export default function BookingsListPage() {
       )}
 
       {hasBookings && (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {list.map((booking) => (
             <Link
               key={booking.id}
               to={`/bookings/${booking.id}`}
-              className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-teal-500 dark:hover:border-teal-500 shadow-sm transition-colors"
+              className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4 hover:border-teal-500 dark:hover:border-teal-500 shadow-sm transition-colors"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-gray-900 dark:text-white font-medium">Booking #{booking.id.slice(0, 8)}</span>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-sm sm:text-base text-gray-900 dark:text-white font-medium">Booking #{booking.id.slice(0, 8)}</span>
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   {format(new Date(booking.createdAt), 'MMM d, yyyy')}
                 </span>
               </div>

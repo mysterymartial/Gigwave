@@ -123,17 +123,17 @@ export default function BankAccountsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {hasNoAccounts && (
-          <div className="mb-6 p-4 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-200">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-sm sm:text-base">
             Add your bank account to continue using GigWave.
           </div>
         )}
         {needsMandateMessage && (
-          <div className="mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
-            <p className="font-semibold">Set up a mandate to continue</p>
-            <p className="text-sm mt-1">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+            <p className="font-semibold text-sm sm:text-base">Set up a mandate to continue</p>
+            <p className="text-xs sm:text-sm mt-1">
               {user?.role === UserRole.EVENT_OWNER
                 ? 'You need an active payment mandate to post a gig. Choose a bank account below and click "Set Up Mandate".'
                 : 'You need an active payment mandate to find and book gigs. Choose a bank account below and click "Set Up Mandate".'}
@@ -141,17 +141,17 @@ export default function BankAccountsPage() {
           </div>
         )}
         {!hasNoAccounts && bankAccounts && bankAccounts.length > 0 && (
-          <div className="mb-6 p-4 rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-200">
-            <div className="flex justify-between items-center">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
               <div>
-                <p className="font-semibold">Ready to start using GigWave?</p>
-                <p className="text-sm mt-1">
+                <p className="font-semibold text-sm sm:text-base">Ready to start using GigWave?</p>
+                <p className="text-xs sm:text-sm mt-1">
                   {user?.role === UserRole.EVENT_OWNER
                     ? 'Set up a payment mandate to enable secure payments for your gigs.'
                     : 'Set up a payment mandate to receive payouts securely.'}
                 </p>
               </div>
-              <div className="flex gap-2 ml-4">
+              <div className="flex gap-2 w-full sm:w-auto sm:ml-4">
                 {user?.role === UserRole.EVENT_OWNER ? (
                   <button
                     onClick={() => navigate('/gigs/create')}
@@ -175,19 +175,19 @@ export default function BankAccountsPage() {
             </div>
           </div>
         )}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white">Bank Accounts</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Bank Accounts</h1>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-teal-500 hover:bg-teal-400 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            className="w-full sm:w-auto bg-teal-500 hover:bg-teal-400 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
           >
             {showForm ? 'Cancel' : 'Add Bank Account'}
           </button>
         </div>
 
         {showForm && (
-          <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 mb-6 shadow-xl">
-            <h2 className="text-xl font-semibold mb-6 text-white">Add Bank Account</h2>
+          <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 shadow-xl">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-white">Add Bank Account</h2>
             {error && (
               <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
                 {error}
@@ -267,29 +267,27 @@ export default function BankAccountsPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => setShowMandateForm(account.id)}
+                      className="w-full sm:w-auto bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Set Up Mandate
+                    </button>
+                    {!account.isPayoutDefault && (
                       <button
-                        onClick={() => setShowMandateForm(account.id)}
-                        className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        onClick={() => setDefault.mutate(account.id)}
+                        className="w-full sm:w-auto text-center text-teal-400 hover:text-teal-300 text-sm font-medium px-4 py-2 border border-teal-400/50 rounded-lg sm:border-0 sm:px-0 sm:py-0"
                       >
-                        Set Up Mandate
+                        Set Default
                       </button>
-                      {!account.isPayoutDefault && (
-                        <button
-                          onClick={() => setDefault.mutate(account.id)}
-                          className="text-teal-400 hover:text-teal-300 text-sm font-medium"
-                        >
-                          Set Default
-                        </button>
-                      )}
-                      <button
-                        onClick={() => deleteAccount.mutate(account.id)}
-                        className="text-red-400 hover:text-red-300 text-sm font-medium"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    )}
+                    <button
+                      onClick={() => deleteAccount.mutate(account.id)}
+                      className="w-full sm:w-auto text-center text-red-400 hover:text-red-300 text-sm font-medium px-4 py-2 border border-red-400/50 rounded-lg sm:border-0 sm:px-0 sm:py-0"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
@@ -330,7 +328,7 @@ export default function BankAccountsPage() {
                   {error}
                 </div>
               )}
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -338,7 +336,7 @@ export default function BankAccountsPage() {
                     setMandateBvn('');
                     setError(null);
                   }}
-                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-colors"
+                  className="w-full sm:flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-colors"
                 >
                   Cancel
                 </button>
@@ -346,7 +344,7 @@ export default function BankAccountsPage() {
                   type="button"
                   onClick={() => handleSetupMandate(showMandateForm)}
                   disabled={setupOrganizerMandate.isPending || setupMusicianMandate.isPending}
-                  className="flex-1 bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
+                  className="w-full sm:flex-1 bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
                 >
                   {setupOrganizerMandate.isPending || setupMusicianMandate.isPending
                     ? 'Setting up...'

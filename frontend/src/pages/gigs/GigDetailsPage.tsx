@@ -51,10 +51,10 @@ export default function GigDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 transition-colors">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
-          <h1 className="text-3xl font-bold text-white mb-4">{gig.title}</h1>
+        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-4 sm:p-6 lg:p-8 shadow-xl">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">{gig.title}</h1>
           <div className="space-y-4 mb-6">
             <p className="text-emerald-200/90">{gig.description}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -76,19 +76,21 @@ export default function GigDetailsPage() {
           </div>
 
           {/* Location Map */}
-          <div className="mt-6 border-t border-emerald-700/40 pt-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Location</h2>
-            <LocationMap
-              location={gig.location}
-              latitude={gig.latitude}
-              longitude={gig.longitude}
-              height="400px"
-            />
+          <div className="mt-4 sm:mt-6 border-t border-emerald-700/40 pt-4 sm:pt-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Location</h2>
+            <div className="h-[300px] sm:h-[400px]">
+              <LocationMap
+                location={gig.location}
+                latitude={gig.latitude}
+                longitude={gig.longitude}
+                height="100%"
+              />
+            </div>
           </div>
 
           {user?.role === UserRole.MUSICIAN && gig.status === 'OPEN' && (
-            <div className="border-t border-emerald-700/40 pt-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Accept This Gig</h2>
+            <div className="border-t border-emerald-700/40 pt-4 sm:pt-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Accept This Gig</h2>
               {acceptError && (
                 <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
                   {acceptError}

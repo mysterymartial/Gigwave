@@ -80,10 +80,10 @@ export default function BookingDetailsPage() {
   const isOrganizer = user?.role === UserRole.EVENT_OWNER;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-emerald-900/50 rounded-2xl border border-gray-200 dark:border-emerald-700/40 p-8 shadow-xl">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Booking Details</h1>
+        <div className="bg-white dark:bg-emerald-900/50 rounded-2xl border border-gray-200 dark:border-emerald-700/40 p-4 sm:p-6 lg:p-8 shadow-xl">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Booking Details</h1>
 
         <div className="mb-6">
           <BookingTimeline
@@ -171,33 +171,35 @@ export default function BookingDetailsPage() {
           )}
 
           {showOtpInput && (
-            <div className="bg-teal-50 dark:bg-teal-500/20 border border-teal-200 dark:border-teal-500/40 rounded-lg p-4">
-              <p className="text-teal-800 dark:text-teal-200 mb-3">Please enter the OTP sent to your phone to complete the payment.</p>
-              <div className="flex space-x-2">
+            <div className="bg-teal-50 dark:bg-teal-500/20 border border-teal-200 dark:border-teal-500/40 rounded-lg p-3 sm:p-4">
+              <p className="text-sm sm:text-base text-teal-800 dark:text-teal-200 mb-3">Please enter the OTP sent to your phone to complete the payment.</p>
+              <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
                 <input
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   placeholder="Enter OTP"
-                  className="flex-1 px-4 py-2 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-emerald-700/50 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  className="flex-1 px-3 sm:px-4 py-2 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-emerald-700/50 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base"
                   maxLength={6}
                 />
-                <button
-                  onClick={handleValidateOtp}
-                  disabled={validateOtp.isPending || !otp}
-                  className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-white rounded-lg disabled:opacity-50 transition-colors"
-                >
-                  {validateOtp.isPending ? 'Validating...' : 'Validate'}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowOtpInput(false);
-                    setOtp('');
-                  }}
-                  className="px-4 py-2 border-2 border-gray-300 dark:border-emerald-700/50 rounded-lg text-gray-700 dark:text-emerald-200 hover:bg-gray-100 dark:hover:bg-emerald-900/60 transition-colors"
-                >
-                  Cancel
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleValidateOtp}
+                    disabled={validateOtp.isPending || !otp}
+                    className="flex-1 sm:flex-none px-4 py-2 bg-teal-500 hover:bg-teal-400 text-white rounded-lg disabled:opacity-50 transition-colors text-sm sm:text-base"
+                  >
+                    {validateOtp.isPending ? 'Validating...' : 'Validate'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowOtpInput(false);
+                      setOtp('');
+                    }}
+                    className="flex-1 sm:flex-none px-4 py-2 border-2 border-gray-300 dark:border-emerald-700/50 rounded-lg text-gray-700 dark:text-emerald-200 hover:bg-gray-100 dark:hover:bg-emerald-900/60 transition-colors text-sm sm:text-base"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           )}

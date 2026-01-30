@@ -93,12 +93,12 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6">My Profile</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">My Profile</h1>
 
         {user?.role === UserRole.MUSICIAN && (
-          <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
+          <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-4 sm:p-6 lg:p-8 shadow-xl">
             <h2 className="text-xl font-semibold mb-4 text-white">Musician Profile</h2>
             {musicianProfile && (
               <div className="mb-4">
@@ -184,7 +184,7 @@ export default function ProfilePage() {
         )}
 
       {user?.role === UserRole.EVENT_OWNER && (
-        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 shadow-xl">
+        <div className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-4 sm:p-6 lg:p-8 shadow-xl">
           <h2 className="text-xl font-semibold mb-4 text-white">Organizer Profile</h2>
           <form onSubmit={handleOrganizerSubmit} className="space-y-4">
             <div>

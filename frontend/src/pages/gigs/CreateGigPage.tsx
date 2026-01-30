@@ -62,10 +62,10 @@ export default function CreateGigPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 transition-colors">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Post a New Gig</h1>
-        <form onSubmit={handleSubmit} className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-8 space-y-6 shadow-xl">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">Post a New Gig</h1>
+        <form onSubmit={handleSubmit} className="bg-emerald-900/40 dark:bg-emerald-900/50 rounded-2xl border border-emerald-700/40 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 shadow-xl">
         <div>
           <label className="block text-sm font-medium text-emerald-100 mb-1">Title</label>
           <input
@@ -154,18 +154,18 @@ export default function CreateGigPage() {
           )}
           {imageUploading && <p className="text-sm text-emerald-200/60 mt-1">Uploading image...</p>}
         </div>
-        <div className="flex justify-end space-x-4">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 sm:space-x-0">
           <button
             type="button"
             onClick={() => navigate('/my-gigs')}
-            className="px-6 py-2 border-2 border-emerald-700/50 rounded-lg text-emerald-200 hover:bg-emerald-900/60 transition-colors"
+            className="w-full sm:w-auto px-6 py-2 border-2 border-emerald-700/50 rounded-lg text-emerald-200 hover:bg-emerald-900/60 transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={createGig.isPending}
-            className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-400 disabled:opacity-50 transition-colors font-semibold"
+            className="w-full sm:w-auto px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-400 disabled:opacity-50 transition-colors font-semibold"
           >
             {createGig.isPending ? 'Creating...' : 'Create Gig'}
           </button>

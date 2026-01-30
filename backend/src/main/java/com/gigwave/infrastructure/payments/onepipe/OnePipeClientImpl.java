@@ -136,30 +136,29 @@ public class OnePipeClientImpl implements OnePipeClient {
             }
             
             // Process response body
-            {
-                // OnePipe can return status "Failed" with errors in body.errors or body.data.errors
-                if ("Failed".equals(body.get("status"))) {
-                    Object errors = body.get("errors");
-                    if (errors == null && body.get("data") instanceof Map) {
-                        errors = ((Map<?, ?>) body.get("data")).get("errors");
-                    }
-                    String errorMessage = errors != null ? extractErrorMessage(errors) : "Error occurred while processing request";
-                    log.error("OnePipe create mandate error: {}", errorMessage);
-                    throw new RuntimeException("OnePipe mandate setup failed: " + errorMessage);
-                }
+            // OnePipe can return status "Failed" with errors in body.errors or body.data.errors
+            if ("Failed".equals(body.get("status"))) {
                 Object errors = body.get("errors");
-                if (errors != null) {
-                    String errorMessage = extractErrorMessage(errors);
-                    log.error("OnePipe create mandate error: {}", errorMessage);
-                    throw new RuntimeException("OnePipe mandate setup failed: " + errorMessage);
+                if (errors == null && body.get("data") instanceof Map) {
+                    errors = ((Map<?, ?>) body.get("data")).get("errors");
                 }
-                Map<String, Object> tx = (Map<String, Object>) body.getOrDefault("transaction", new HashMap<>());
-                return MandateResponse.builder()
-                        .status((String) body.getOrDefault("status", "pending"))
-                        .mandateRef((String) tx.getOrDefault("mandate_ref", ""))
-                        .authorizationUrl((String) tx.getOrDefault("authorization_url", ""))
-                        .message((String) body.getOrDefault("message", ""))
-                        .build();
+                String errorMessage = errors != null ? extractErrorMessage(errors) : "Error occurred while processing request";
+                log.error("OnePipe create mandate error: {}", errorMessage);
+                throw new RuntimeException("OnePipe mandate setup failed: " + errorMessage);
+            }
+            Object errors = body.get("errors");
+            if (errors != null) {
+                String errorMessage = extractErrorMessage(errors);
+                log.error("OnePipe create mandate error: {}", errorMessage);
+                throw new RuntimeException("OnePipe mandate setup failed: " + errorMessage);
+            }
+            Map<String, Object> tx = (Map<String, Object>) body.getOrDefault("transaction", new HashMap<>());
+            return MandateResponse.builder()
+                    .status((String) body.getOrDefault("status", "pending"))
+                    .mandateRef((String) tx.getOrDefault("mandate_ref", ""))
+                    .authorizationUrl((String) tx.getOrDefault("authorization_url", ""))
+                    .message((String) body.getOrDefault("message", ""))
+                    .build();
         } catch (HttpClientErrorException e) {
             String responseBody = e.getResponseBodyAsString();
             log.error("OnePipe create mandate HTTP error: status={}, body={}", e.getStatusCode(), responseBody);
@@ -197,7 +196,6 @@ public class OnePipeClientImpl implements OnePipeClient {
             log.error("Error setting up mandate", e);
             throw new RuntimeException("Failed to setup mandate: " + e.getMessage(), e);
         }
-        throw new RuntimeException("OnePipe API not properly configured or unavailable");
     }
 
     private String encryptSecure(String plaintext) {
