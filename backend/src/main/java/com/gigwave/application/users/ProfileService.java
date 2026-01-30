@@ -46,10 +46,8 @@ public class ProfileService {
         profile.setInstagramHandle(instagramHandle);
         profile.setTiktokHandle(tiktokHandle);
         profile.setXHandle(xHandle);
-        if (performanceVideoUrls != null) {
-            profile.setPerformanceVideoUrls(performanceVideoUrls);
-        }
-        // Allow profile save with or without videos; no minimum video requirement
+        // Always set performanceVideoUrls (can be null, empty, or with items) - no restrictions
+        profile.setPerformanceVideoUrls(performanceVideoUrls != null ? performanceVideoUrls : Collections.emptyList());
 
         return musicianProfileRepository.save(profile);
     }
