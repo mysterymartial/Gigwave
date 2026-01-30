@@ -18,9 +18,16 @@ export default function BankAccountsPage() {
   const deleteAccount = useDeleteBankAccount();
   const setupOrganizerMandate = useSetupOrganizerMandate();
   const setupMusicianMandate = useSetupMusicianMandate();
-  const { data: mandateStatus } = useMandateStatus();
+  const { data: mandateStatus, isLoading: mandateLoading } = useMandateStatus();
   const [searchParams] = useSearchParams();
   const needsMandateMessage = searchParams.get('setup_mandate') === '1';
+
+  // Once mandate is active, route user to profile so they can complete profile; then musician can find gigs, organizer can post gig
+  useEffect(() => {
+    if (!mandateLoading && mandateStatus?.hasActiveMandate && user?.role !== UserRole.ADMIN) {
+      navigate('/profile', { replace: true });
+    }
+  }, [mandateStatus?.hasActiveMandate, mandateLoading, user?.role, navigate]);
 
   const [showForm, setShowForm] = useState(false);
   const [showMandateForm, setShowMandateForm] = useState<string | null>(null); // accountId
