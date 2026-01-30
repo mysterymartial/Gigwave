@@ -44,7 +44,12 @@ export default function ProfilePage() {
     setVideoUploading(true);
     try {
       const result = await uploadVideo.mutateAsync(file);
-      setPerformanceVideos([...performanceVideos, result.url]);
+      const url = result?.url ?? (result as { url?: string })?.url;
+      if (url) {
+        setPerformanceVideos((prev) => [...prev, url]);
+      } else {
+        alert('Upload succeeded but no URL returned. Please try again.');
+      }
       e.target.value = '';
     } catch (error) {
       console.error('Failed to upload video', error);
@@ -61,8 +66,7 @@ export default function ProfilePage() {
 
   const handleMusicianSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    // Validate minimum 1 video (for testing)
+
     if (performanceVideos.length < 1) {
       alert('Musician must upload at least one performance video');
       return;
@@ -76,12 +80,13 @@ export default function ProfilePage() {
         minFee: minFee ? parseFloat(minFee) : undefined,
         performanceVideoUrls: performanceVideos,
       });
+      alert('Profile saved successfully.');
     } catch (error: any) {
-      if (error?.response?.data?.message) {
-        alert(error.response.data.message);
-      } else {
-        alert('Failed to update profile');
-      }
+      const message =
+        error?.response?.data?.message ??
+        error?.message ??
+        'Failed to update profile';
+      alert(message);
     }
   };
 
