@@ -95,11 +95,13 @@ public class OnePipeClientImpl implements OnePipeClient {
         transaction.put("transaction_ref_parent", null);
         transaction.put("amount", 0);
         Map<String, Object> customer = new HashMap<>();
-        customer.put("customer_ref", request.getUserId() != null ? request.getUserId().toString() : "");
+        // customer_ref = Nigerian phone format: 234XXXXXXXXX (e.g. 08159089791 -> 2348159089791)
+        String customerRef = normalizeNigerianPhone(request.getPhone());
+        customer.put("customer_ref", customerRef != null ? customerRef : "");
         customer.put("firstname", firstname);
         customer.put("surname", surname);
         customer.put("email", request.getEmail() != null ? request.getEmail() : "");
-        customer.put("mobile_no", normalizeNigerianPhone(request.getPhone()));
+        customer.put("mobile_no", customerRef != null ? customerRef : "");
         transaction.put("customer", customer);
         Map<String, Object> meta = new HashMap<>();
         meta.put("amount", String.valueOf(maxAmountKobo));
@@ -262,11 +264,13 @@ public class OnePipeClientImpl implements OnePipeClient {
         transaction.put("transaction_ref_parent", null);
         transaction.put("amount", amountKobo);
         Map<String, Object> customer = new HashMap<>();
-        customer.put("customer_ref", request.getUserId() != null ? request.getUserId().toString() : "");
+        // customer_ref = Nigerian phone format: 234XXXXXXXXX (e.g. 08159089791 -> 2348159089791)
+        String customerRef = normalizeNigerianPhone(request.getPhone());
+        customer.put("customer_ref", customerRef != null ? customerRef : "");
         customer.put("firstname", firstname);
         customer.put("surname", surname);
         customer.put("email", request.getEmail() != null ? request.getEmail() : "");
-        customer.put("mobile_no", normalizeNigerianPhone(request.getPhone()));
+        customer.put("mobile_no", customerRef != null ? customerRef : "");
         transaction.put("customer", customer);
         Map<String, Object> meta = new HashMap<>();
         meta.put("biller_code", (billerCode != null) ? billerCode.trim() : "");
