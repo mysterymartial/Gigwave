@@ -175,7 +175,7 @@ export default function ProfilePage() {
             </div>
             <button
               type="submit"
-              disabled={updateMusician.isPending || performanceVideos.length < 3}
+              disabled={updateMusician.isPending || performanceVideos.length < 1}
               className="w-full bg-teal-500 hover:bg-teal-400 text-white px-4 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
             >
               {updateMusician.isPending ? 'Saving...' : 'Save Profile'}
